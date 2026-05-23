@@ -1,3699 +1,626 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NEXUS // Robotics Mission Control</title>
+<title>Ritme</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap');
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg: #070b12;
-  --bg2: #0c1220;
-  --bg3: #111827;
-  --panel: rgba(16, 24, 40, 0.85);
-  --panel2: rgba(22, 34, 58, 0.7);
-  --cyan: #00e5ff;
-  --cyan-dim: #00b8cc;
-  --cyan-glow: rgba(0, 229, 255, 0.15);
-  --cyan-glow2: rgba(0, 229, 255, 0.06);
-  --blue: #1a6cf5;
-  --blue-dim: #0f4bb8;
-  --orange: #ff6b35;
-  --orange-dim: #cc4a1a;
-  --orange-glow: rgba(255, 107, 53, 0.15);
-  --green: #00ff88;
-  --green-dim: #00cc6a;
-  --text: #e2e8f0;
-  --text-dim: #8899aa;
-  --text-muted: #445566;
-  --border: rgba(0, 229, 255, 0.12);
-  --border2: rgba(0, 229, 255, 0.06);
-  --font-mono: 'JetBrains Mono', 'Space Mono', monospace;
-  --font-display: 'Syne', sans-serif;
-  --radius: 8px;
-  --radius2: 12px;
+  --bg: #F5F0E8;
+  --surface: #FDFAF4;
+  --surface2: #EDE8DE;
+  --ink: #2A2118;
+  --ink2: #6B5F4F;
+  --ink3: #A89880;
+  --accent: #4A7FA5;
+  --accent-soft: #E8F2F9;
+  --accent-mid: #B8D4E8;
 }
-
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
 
 body {
+  font-family: 'DM Sans', sans-serif;
   background: var(--bg);
-  color: var(--text);
-  font-family: var(--font-mono);
+  color: var(--ink);
   min-height: 100vh;
-  overflow-x: hidden;
-  line-height: 1.6;
+  padding: 2.5rem 1.25rem 6rem;
+  -webkit-tap-highlight-color: transparent;
 }
 
-/* ========== CANVAS BACKGROUND ========== */
-#bg-canvas {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  z-index: 0;
-  pointer-events: none;
-  opacity: 0.4;
-}
+.wrap { max-width: 480px; margin: 0 auto; }
 
-/* ========== LAYOUT ========== */
-.main-layout {
-  display: flex;
-  min-height: 100vh;
-  position: relative;
-  z-index: 1;
-}
+header { margin-bottom: 2.5rem; }
 
-/* ========== SIDEBAR NAV ========== */
-.sidebar {
-  width: 240px;
-  min-height: 100vh;
-  background: var(--panel);
-  border-right: 1px solid var(--border);
-  backdrop-filter: blur(20px);
-  position: fixed;
-  left: 0; top: 0;
-  display: flex;
-  flex-direction: column;
-  z-index: 100;
-  transition: transform 0.3s ease;
-}
-
-.sidebar-logo {
-  padding: 24px 20px 16px;
-  border-bottom: 1px solid var(--border);
-}
-
-.sidebar-logo .logo-text {
-  font-family: var(--font-display);
-  font-size: 18px;
-  font-weight: 800;
-  color: var(--cyan);
-  letter-spacing: 4px;
-  text-transform: uppercase;
-}
-
-.sidebar-logo .logo-sub {
-  font-size: 9px;
-  color: var(--text-muted);
-  letter-spacing: 2px;
-  margin-top: 2px;
-}
-
-.sidebar-nav {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px 0;
-}
-
-.sidebar-nav::-webkit-scrollbar { width: 3px; }
-.sidebar-nav::-webkit-scrollbar-track { background: transparent; }
-.sidebar-nav::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-
-.nav-section-label {
-  font-size: 9px;
-  letter-spacing: 2px;
-  color: var(--text-muted);
-  padding: 12px 20px 4px;
-  text-transform: uppercase;
-}
-
-.nav-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 9px 20px;
-  cursor: pointer;
-  font-size: 11px;
-  letter-spacing: 0.5px;
-  color: var(--text-dim);
-  transition: all 0.2s;
-  border-left: 2px solid transparent;
-  text-decoration: none;
-}
-
-.nav-item:hover, .nav-item.active {
-  color: var(--cyan);
-  background: var(--cyan-glow2);
-  border-left-color: var(--cyan);
-}
-
-.nav-item .nav-icon {
-  font-size: 13px;
-  width: 16px;
-  text-align: center;
-}
-
-.sidebar-footer {
-  padding: 16px 20px;
-  border-top: 1px solid var(--border);
-  font-size: 9px;
-  color: var(--text-muted);
-  letter-spacing: 1px;
-}
-
-/* ========== MAIN CONTENT ========== */
-.main-content {
-  margin-left: 240px;
-  flex: 1;
-  min-height: 100vh;
-}
-
-.section {
-  padding: 40px 40px 60px;
-  border-bottom: 1px solid var(--border2);
-}
-
-/* ========== COMMON COMPONENTS ========== */
-.section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 32px;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.section-title {
-  font-family: var(--font-display);
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--text);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.section-title .title-tag {
-  font-family: var(--font-mono);
-  font-size: 9px;
-  letter-spacing: 2px;
-  color: var(--cyan);
-  background: var(--cyan-glow);
-  padding: 3px 8px;
-  border-radius: 3px;
-  border: 1px solid rgba(0,229,255,0.2);
-}
-
-.badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 8px;
-  border-radius: 3px;
-  font-size: 9px;
-  letter-spacing: 1px;
-  font-weight: 500;
-  text-transform: uppercase;
-}
-
-.badge-cyan { background: var(--cyan-glow); color: var(--cyan); border: 1px solid rgba(0,229,255,0.2); }
-.badge-orange { background: var(--orange-glow); color: var(--orange); border: 1px solid rgba(255,107,53,0.2); }
-.badge-green { background: rgba(0,255,136,0.1); color: var(--green); border: 1px solid rgba(0,255,136,0.2); }
-.badge-dim { background: rgba(255,255,255,0.05); color: var(--text-muted); border: 1px solid rgba(255,255,255,0.08); }
-
-.card {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: var(--radius2);
-  backdrop-filter: blur(12px);
-  transition: all 0.25s;
-}
-
-.card:hover {
-  border-color: rgba(0, 229, 255, 0.25);
-  box-shadow: 0 0 24px var(--cyan-glow);
-}
-
-.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
-.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-
-/* ========== BUTTONS ========== */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  border-radius: var(--radius);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.5px;
-  cursor: pointer;
-  transition: all 0.2s;
-  border: none;
-  outline: none;
-}
-
-.btn-primary {
-  background: var(--cyan);
-  color: var(--bg);
-  font-weight: 700;
-}
-
-.btn-primary:hover { background: var(--cyan-dim); box-shadow: 0 0 16px var(--cyan-glow); }
-
-.btn-ghost {
-  background: transparent;
-  color: var(--text-dim);
-  border: 1px solid var(--border);
-}
-
-.btn-ghost:hover { border-color: var(--cyan); color: var(--cyan); }
-
-.btn-danger {
-  background: transparent;
-  color: #ff4444;
-  border: 1px solid rgba(255,68,68,0.3);
-  font-size: 10px;
-  padding: 5px 10px;
-}
-
-.btn-danger:hover { background: rgba(255,68,68,0.1); }
-
-.btn-sm { padding: 5px 10px; font-size: 10px; }
-
-/* ========== INPUTS ========== */
-input[type="text"], input[type="number"], textarea, select {
-  background: rgba(0,0,0,0.3);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  color: var(--text);
-  font-family: var(--font-mono);
-  font-size: 12px;
-  padding: 8px 12px;
-  outline: none;
-  transition: border-color 0.2s;
-  width: 100%;
-}
-
-input[type="text"]:focus, textarea:focus, select:focus {
-  border-color: var(--cyan);
-  box-shadow: 0 0 8px var(--cyan-glow);
-}
-
-textarea { resize: vertical; min-height: 80px; }
-
-select option { background: var(--bg2); }
-
-/* ========== PROGRESS BAR ========== */
-.progress-bar {
-  height: 4px;
-  background: rgba(255,255,255,0.06);
-  border-radius: 4px;
-  overflow: hidden;
-  margin-top: 8px;
-}
-
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--cyan), var(--blue));
-  border-radius: 4px;
-  transition: width 0.8s ease;
-  box-shadow: 0 0 8px var(--cyan-glow);
-}
-
-.progress-fill.orange {
-  background: linear-gradient(90deg, var(--orange), #ff9a3c);
-} 
-
-/* ========== TAGS ========== */
-
-/* ========== MODAL ========== */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.7);
-  backdrop-filter: blur(4px);
-  z-index: 999;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-}
-
-.modal-overlay.open { display: flex; }
-
-.modal {
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius2);
-  width: 100%;
-  max-width: 560px;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 0 60px rgba(0,229,255,0.1);
-}
-
-.modal-header {
-  padding: 20px 24px;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.modal-header h3 {
-  font-family: var(--font-display);
-  font-size: 16px;
-  font-weight: 700;
-}
-
-.modal-body { padding: 24px; }
-
-.modal-footer {
-  padding: 16px 24px;
-  border-top: 1px solid var(--border);
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-}
-
-.close-btn {
-  background: none;
-  border: none;
-  color: var(--text-dim);
-  cursor: pointer;
-  font-size: 18px;
-  line-height: 1;
-  padding: 2px 6px;
-  transition: color 0.2s;
-}
-
-.close-btn:hover { color: var(--text); }
-
-/* ========== FORM GROUPS ========== */
-.form-group { margin-bottom: 16px; }
-.form-group label {
-  display: block;
-  font-size: 10px;
-  letter-spacing: 1px;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  margin-bottom: 6px;
-}
-
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-
-/* =============================================
-   SECTION 1: HERO
-   ============================================= */
-#hero {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 60px 40px;
-  position: relative;
-  border-bottom: 1px solid var(--border2);
-  overflow: hidden;
-}
-
-.hero-grid-overlay {
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
-  background-size: 40px 40px;
-  pointer-events: none;
-}
-
-.hero-corner {
-  position: absolute;
-  font-size: 9px;
-  letter-spacing: 2px;
-  color: var(--text-muted);
-  font-family: var(--font-mono);
-}
-
-.hero-corner.tl { top: 20px; left: 260px; }
-.hero-corner.tr { top: 20px; right: 20px; }
-.hero-corner.bl { bottom: 20px; left: 260px; }
-.hero-corner.br { bottom: 20px; right: 20px; }
-
-.hero-tag {
-  font-size: 10px;
-  letter-spacing: 3px;
-  color: var(--cyan);
-  text-transform: uppercase;
-  margin-bottom: 16px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.hero-tag::before {
-  content: '';
-  width: 24px;
-  height: 1px;
-  background: var(--cyan);
-}
-
-.hero-name {
-  font-family: var(--font-display);
-  font-size: clamp(36px, 5vw, 64px);
-  font-weight: 800;
-  line-height: 1.05;
-  color: var(--text);
-  margin-bottom: 8px;
-}
-
-.hero-name .highlight {
-  color: var(--cyan);
-  text-shadow: 0 0 30px var(--cyan-glow);
-}
-
-.hero-title {
-  font-size: 13px;
-  letter-spacing: 2px;
-  color: var(--text-dim);
-  text-transform: uppercase;
-  margin-bottom: 32px;
-}
-
-.hero-mission {
-  max-width: 640px;
-  font-family: var(--font-display);
-  font-size: clamp(16px, 2vw, 22px);
-  font-weight: 600;
-  color: var(--text);
-  line-height: 1.5;
-  padding: 20px 24px;
-  border-left: 3px solid var(--cyan);
-  background: var(--cyan-glow2);
-  border-radius: 0 var(--radius) var(--radius) 0;
-  margin-bottom: 32px;
-}
-
-.hero-stats {
-  display: flex;
-  gap: 32px;
-  flex-wrap: wrap;
-}
-
-.hero-stat {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.hero-stat .stat-val {
-  font-family: var(--font-display);
-  font-size: 24px;
-  font-weight: 800;
-  color: var(--cyan);
-}
-
-.hero-stat .stat-label {
-  font-size: 9px;
-  letter-spacing: 2px;
-  color: var(--text-muted);
-  text-transform: uppercase;
-}
-
-.hero-focus {
-  margin-top: 32px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.focus-label {
-  font-size: 10px;
-  letter-spacing: 2px;
-  color: var(--text-muted);
-  text-transform: uppercase;
-}
-
-.focus-value {
-  font-size: 12px;
-  color: var(--cyan);
-  background: var(--cyan-glow);
-  padding: 5px 12px;
-  border-radius: 3px;
-  border: 1px solid rgba(0,229,255,0.2);
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.focus-value:hover { box-shadow: 0 0 12px var(--cyan-glow); }
-
-.telemetry-bar {
-  position: absolute;
-  bottom: 0; left: 240px; right: 0;
-  height: 30px;
-  background: rgba(0,0,0,0.4);
-  border-top: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  padding: 0 40px;
-  overflow: hidden;
-  font-size: 9px;
-  letter-spacing: 1px;
-  color: var(--text-muted);
-}
-
-.telem-item { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
-.telem-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); animation: pulse 2s infinite; }
-.telem-dot.orange { background: var(--orange); box-shadow: 0 0 6px var(--orange); }
-
-/* =============================================
-   SECTION 2: CORE MISSION
-   ============================================= */
-.mission-card {
-  padding: 24px;
-  position: relative;
-  overflow: hidden;
-}
-
-.mission-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 3px;
-  background: linear-gradient(90deg, var(--cyan), transparent);
-}
-
-.mission-card.orange::before {
-  background: linear-gradient(90deg, var(--orange), transparent);
-}
-
-.mission-icon {
-  font-size: 28px;
-  margin-bottom: 12px;
-}
-
-.mission-card h3 {
-  font-family: var(--font-display);
-  font-size: 16px;
-  font-weight: 700;
-  margin-bottom: 8px;
-  color: var(--text);
-}
-
-.mission-card p {
-  font-size: 11px;
-  color: var(--text-dim);
-  line-height: 1.7;
-}
-
-.mission-card .mission-tagline {
-  margin-top: 12px;
-  font-size: 11px;
-  color: var(--cyan);
-  font-style: italic;
-}
-
-.mission-card.orange .mission-tagline { color: var(--orange); }
-
-.core-manifesto {
-  margin-bottom: 32px;
-  padding: 28px 32px;
-  background: linear-gradient(135deg, rgba(0,229,255,0.05), rgba(26,108,245,0.05));
-  border: 1px solid var(--border);
-  border-radius: var(--radius2);
-  text-align: center;
-}
-
-.core-manifesto p {
-  font-family: var(--font-display);
-  font-size: clamp(18px, 2.5vw, 26px);
-  font-weight: 700;
-  color: var(--text);
-  line-height: 1.5;
-}
-
-.core-manifesto .sub {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--text-dim);
-  margin-top: 8px;
+.logo {
+  font-family: 'Lora', serif;
+  font-size: 1.4rem;
   font-weight: 400;
 }
+.logo em { font-style: italic; color: var(--ink2); }
 
-/* =============================================
-   SECTION 3: SPECIALIZATION MAP
-   ============================================= */
-.skill-tree {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 12px;
-}
+.sub { font-size: 0.78rem; color: var(--ink3); margin-top: 4px; }
 
-.skill-domain {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: var(--radius2);
-  overflow: hidden;
-}
-
-.skill-domain-header {
-  padding: 14px 18px;
-  cursor: pointer;
+.top-bar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  transition: background 0.2s;
-  user-select: none;
+  margin-bottom: 2.5rem;
+  gap: 1rem;
 }
 
-.skill-domain-header:hover { background: var(--cyan-glow2); }
+.prog-text { font-size: 0.8rem; color: var(--ink3); white-space: nowrap; }
+.prog-text span { font-size: 1.05rem; font-weight: 500; color: var(--ink2); font-family: 'Lora', serif; }
 
-.skill-domain-name {
-  font-family: var(--font-display);
-  font-size: 14px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
+.prog-bar { flex: 1; height: 3px; background: var(--surface2); border-radius: 99px; overflow: hidden; }
+.prog-fill { height: 100%; background: var(--accent); border-radius: 99px; transition: width 0.5s cubic-bezier(0.4,0,0.2,1); }
 
-.skill-chevron { transition: transform 0.3s; color: var(--text-muted); font-size: 12px; }
-.skill-domain.open .skill-chevron { transform: rotate(180deg); }
-
-.skill-domain-body {
-  display: none;
-  padding: 0 18px 16px;
-  border-top: 1px solid var(--border2);
-}
-
-.skill-domain.open .skill-domain-body { display: block; }
-
-.skill-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--border2);
-  font-size: 11px;
-  color: var(--text-dim);
-}
-
-.skill-item:last-child { border-bottom: none; }
-
-.skill-status {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.status-dot {
-  width: 7px; height: 7px;
-  border-radius: 50%;
-}
-
-.status-dot.done { background: var(--green); box-shadow: 0 0 6px rgba(0,255,136,0.5); }
-.status-dot.inprogress { background: var(--cyan); box-shadow: 0 0 6px var(--cyan-glow); animation: pulse 2s infinite; }
-.status-dot.todo { background: var(--text-muted); }
-
-.skill-status span { font-size: 9px; letter-spacing: 1px; color: var(--text-muted); text-transform: uppercase; }
-
-/* =============================================
-   SECTION 4: ACTION ROADMAP
-   ============================================= */
-.roadmap-timeline {
-  position: relative;
-  padding-left: 40px;
-}
-
-.roadmap-timeline::before {
+/* Chain spine */
+.chain-list { position: relative; }
+.chain-list::before {
   content: '';
   position: absolute;
-  left: 14px; top: 0; bottom: 0;
-  width: 1px;
-  background: linear-gradient(180deg, var(--cyan), rgba(0,229,255,0.1));
+  left: 13px; top: 14px; bottom: 14px;
+  width: 1.5px;
+  background: var(--surface2);
+  z-index: 0;
 }
 
-.phase-card {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: var(--radius2);
-  margin-bottom: 16px;
-  overflow: hidden;
-  position: relative;
-}
-
-.phase-card::before {
-  content: '';
-  position: absolute;
-  left: -33px; top: 24px;
-  width: 12px; height: 12px;
-  border-radius: 50%;
-  background: var(--bg2);
-  border: 2px solid var(--cyan);
-  box-shadow: 0 0 12px var(--cyan-glow);
-}
-
-.phase-card.active::before {
-  background: var(--cyan);
-  animation: pulse 2s infinite;
-}
-
-.phase-header {
-  padding: 16px 20px;
-  cursor: pointer;
+/* Step row */
+.step-row {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  user-select: none;
-}
-
-.phase-header:hover { background: var(--cyan-glow2); }
-
-.phase-meta { flex: 1; }
-
-.phase-tag {
-  font-size: 9px;
-  letter-spacing: 2px;
-  color: var(--text-muted);
-  text-transform: uppercase;
+  align-items: flex-start;
+  gap: 16px;
+  position: relative;
   margin-bottom: 4px;
+  user-select: none;
+  touch-action: pan-y;
+  transition: transform 0.15s ease, opacity 0.15s ease;
 }
 
-.phase-title {
-  font-family: var(--font-display);
-  font-size: 16px;
-  font-weight: 700;
+.step-row.dragging {
+  opacity: 0.5;
+  z-index: 10;
 }
 
-.phase-progress-mini {
+.step-row.drag-over-above::before {
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  top: -3px;
+  height: 2.5px;
+  background: var(--accent);
+  border-radius: 99px;
+  z-index: 20;
+}
+
+.step-row.drag-over-below::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  bottom: -3px;
+  height: 2.5px;
+  background: var(--accent);
+  border-radius: 99px;
+  z-index: 20;
+}
+
+.step-node {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--surface2);
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  position: relative; z-index: 1;
+  transition: all 0.3s ease;
+}
+
+.step-node svg { width: 12px; height: 12px; opacity: 0; transition: opacity 0.2s; }
+
+.step-body { flex: 1; padding-bottom: 26px; min-width: 0; }
+.step-row:last-child .step-body { padding-bottom: 0; }
+
+.step-name {
+  font-size: 0.92rem;
+  color: var(--ink3);
+  line-height: 1.4;
+  padding-top: 4px;
+  transition: color 0.3s;
+}
+.step-note {
+  font-size: 0.74rem;
+  color: var(--ink3);
+  font-family: 'Lora', serif;
+  font-style: italic;
+  margin-top: 3px;
+  opacity: 0.7;
+}
+
+/* done */
+.step-row.done .step-node { background: var(--accent-soft); border-color: var(--accent-mid); }
+.step-row.done .step-node svg { opacity: 1; }
+.step-row.done .step-name { color: var(--ink3); text-decoration: line-through; text-decoration-color: rgba(107,95,79,0.35); }
+.step-row.done .step-body::before {
+  content: '';
+  position: absolute;
+  left: 13px; top: 0;
+  height: calc(100% + 4px);
+  width: 1.5px;
+  background: var(--accent-mid);
+  z-index: 0;
+}
+
+/* active */
+.step-row.active .step-node { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); cursor: pointer; }
+.step-row.active .step-name { color: var(--ink); font-weight: 500; }
+
+/* drag handle */
+.drag-handle {
+  width: 20px;
   display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 120px;
-}
-
-.phase-progress-mini .pct {
-  font-size: 11px;
-  color: var(--cyan);
-  min-width: 32px;
-  text-align: right;
-}
-
-.phase-body {
-  display: none;
-  padding: 0 20px 20px;
-  border-top: 1px solid var(--border2);
-}
-
-.phase-card.open .phase-body { display: block; }
-
-.phase-section-label {
-  font-size: 9px;
-  letter-spacing: 2px;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  margin: 16px 0 8px;
-}
-
-.tech-tags { display: flex; flex-wrap: wrap; gap: 6px; }
-
-.tech-tag {
-  font-size: 10px;
-  padding: 3px 8px;
-  border-radius: 3px;
-  background: rgba(26,108,245,0.15);
-  color: #7eb3ff;
-  border: 1px solid rgba(26,108,245,0.2);
-}
-
-.milestone-list { list-style: none; }
-
-.milestone-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 6px 0;
-  font-size: 11px;
-  color: var(--text-dim);
-  cursor: pointer;
-  transition: color 0.2s;
-}
-
-.milestone-item:hover { color: var(--text); }
-
-.milestone-check {
-  width: 16px; height: 16px;
-  border-radius: 3px;
-  border: 1px solid var(--border);
-  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: 9px;
-  flex-shrink: 0;
-  transition: all 0.2s;
-}
-
-.milestone-item.done .milestone-check {
-  background: var(--green);
-  border-color: var(--green);
-  color: var(--bg);
-}
-
-.milestone-item.done { color: var(--text-muted); text-decoration: line-through; }
-
-/* =============================================
-   SECTION 5: PROJECT PIPELINE
-   ============================================= */
-.project-card {
-  padding: 20px;
-  position: relative;
-  overflow: hidden;
-  cursor: pointer;
-}
-
-.project-card.hazardous::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, var(--orange), transparent);
-}
-
-.project-card.rescue::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, var(--cyan), transparent);
-}
-
-.project-card-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 10px;
-}
-
-.project-title {
-  font-family: var(--font-display);
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.project-difficulty {
-  display: flex;
   gap: 3px;
+  padding-top: 6px;
   flex-shrink: 0;
-}
-
-.diff-dot {
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: var(--text-muted);
-}
-
-.diff-dot.filled { background: var(--orange); }
-
-.project-mission {
-  font-size: 11px;
-  color: var(--text-dim);
-  line-height: 1.6;
-  margin-bottom: 12px;
-}
-
-.project-tech-mini {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin-bottom: 10px;
-}
-
-.project-tech-tag {
-  font-size: 9px;
-  padding: 2px 6px;
-  border-radius: 2px;
-  background: rgba(255,255,255,0.05);
-  color: var(--text-muted);
-  border: 1px solid rgba(255,255,255,0.07);
-}
-
-.project-impact {
-  font-size: 10px;
-  color: var(--green-dim);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.project-expand-area {
-  display: none;
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--border2);
-}
-
-.project-card.expanded .project-expand-area { display: block; }
-
-.project-actions {
-  display: flex;
-  gap: 6px;
-  margin-top: 12px;
-  flex-wrap: wrap;
-}
-
-/* =============================================
-   SECTION 6: KNOWLEDGE TRACKER
-   ============================================= */
-.knowledge-card {
-  padding: 18px 20px;
-}
-
-.knowledge-card-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 6px;
-}
-
-.knowledge-name {
-  font-family: var(--font-display);
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.knowledge-pct {
-  font-family: var(--font-display);
-  font-size: 18px;
-  font-weight: 800;
-  color: var(--cyan);
-}
-
-.knowledge-stage {
-  font-size: 9px;
-  color: var(--text-muted);
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  margin-bottom: 8px;
-}
-
-.knowledge-body {
-  display: none;
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--border2);
-}
-
-.knowledge-card.expanded .knowledge-body { display: block; }
-
-.knowledge-body textarea {
-  margin-bottom: 8px;
-  min-height: 60px;
-}
-
-.knowledge-resources { margin-top: 8px; }
-
-.resource-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 0;
-  font-size: 10px;
-  color: var(--text-dim);
-}
-
-.resource-link {
-  color: var(--cyan);
-  font-size: 10px;
-  text-decoration: none;
-}
-
-.resource-link:hover { text-decoration: underline; }
-
-.stage-selector {
-  display: flex;
-  gap: 4px;
-  flex-wrap: wrap;
-  margin-top: 8px;
-}
-
-.stage-btn {
-  padding: 3px 8px;
-  border-radius: 3px;
-  font-family: var(--font-mono);
-  font-size: 9px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  cursor: pointer;
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--text-muted);
-  transition: all 0.2s;
-}
-
-.stage-btn.active {
-  background: var(--cyan-glow);
-  border-color: rgba(0,229,255,0.3);
-  color: var(--cyan);
-}
-
-/* =============================================
-   SECTION 7: RESEARCH DIRECTIONS
-   ============================================= */
-.research-card {
-  padding: 20px;
-}
-
-.research-card-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 10px;
-}
-
-.research-title {
-  font-family: var(--font-display);
-  font-size: 15px;
-  font-weight: 700;
-}
-
-.interest-score {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.interest-pips { display: flex; gap: 3px; }
-
-.pip {
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  background: var(--text-muted);
-  opacity: 0.3;
-  transition: all 0.2s;
-}
-
-.pip.filled { background: var(--cyan); opacity: 1; box-shadow: 0 0 6px var(--cyan-glow); }
-
-.research-body {
-  display: none;
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--border2);
-}
-
-.research-card.expanded .research-body { display: block; }
-
-.research-meta-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-top: 10px;
-}
-
-.research-meta-item label {
-  font-size: 9px;
-  letter-spacing: 1px;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  display: block;
-  margin-bottom: 4px;
-}
-
-.research-meta-item p {
-  font-size: 11px;
-  color: var(--text-dim);
-  line-height: 1.5;
-}
-
-/* =============================================
-   SECTION 8: IDEAS VAULT
-   ============================================= */
-.idea-input-area {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: var(--radius2);
-  padding: 20px;
-  margin-bottom: 24px;
-}
-
-.idea-input-area h3 {
-  font-family: var(--font-display);
-  font-size: 14px;
-  font-weight: 700;
-  margin-bottom: 16px;
-  color: var(--cyan);
-}
-
-.idea-card {
-  padding: 16px 18px;
-  cursor: pointer;
-  margin-bottom: 10px;
-}
-
-.idea-card-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.idea-title-text {
-  font-family: var(--font-display);
-  font-size: 14px;
-  font-weight: 700;
-  line-height: 1.3;
-}
-
-.idea-meta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 6px;
-  flex-wrap: wrap;
-}
-
-.idea-time { font-size: 9px; color: var(--text-muted); letter-spacing: 0.5px; }
-
-.idea-tags { display: flex; gap: 4px; flex-wrap: wrap; }
-
-.idea-tag {
-  font-size: 9px;
-  padding: 1px 6px;
-  border-radius: 2px;
-  background: rgba(0,229,255,0.07);
-  color: var(--cyan-dim);
-  border: 1px solid rgba(0,229,255,0.12);
-}
-
-.idea-expand {
-  display: none;
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--border2);
-  font-size: 11px;
-  color: var(--text-dim);
-  line-height: 1.6;
-}
-
-.idea-card.expanded .idea-expand { display: block; }
-
-.idea-importance { display: flex; gap: 3px; }
-.importance-star { font-size: 12px; color: var(--text-muted); transition: color 0.2s; cursor: pointer; }
-.importance-star.filled { color: #ffd700; }
-
-/* =============================================
-   SECTION 9: ETHICAL COMPASS
-   ============================================= */
-.ethics-hero {
-  text-align: center;
-  padding: 32px 40px;
-  margin-bottom: 32px;
-  background: linear-gradient(135deg, rgba(255,107,53,0.05), rgba(0,229,255,0.05));
-  border: 1px solid var(--border);
-  border-radius: var(--radius2);
-  position: relative;
-  overflow: hidden;
-}
-
-.ethics-hero::before {
-  content: '⚖';
-  position: absolute;
-  font-size: 120px;
-  color: rgba(255,255,255,0.02);
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.ethics-hero h2 {
-  font-family: var(--font-display);
-  font-size: clamp(18px, 3vw, 28px);
-  font-weight: 800;
-  line-height: 1.4;
-  margin-bottom: 12px;
-}
-
-.ethics-hero p {
-  font-size: 13px;
-  color: var(--text-dim);
-  max-width: 560px;
-  margin: 0 auto;
-}
-
-.principle-card {
-  padding: 18px 20px;
-  display: flex;
-  gap: 14px;
-  align-items: flex-start;
-  margin-bottom: 10px;
-}
-
-.principle-number {
-  font-family: var(--font-display);
-  font-size: 28px;
-  font-weight: 800;
-  color: var(--cyan);
-  opacity: 0.2;
-  line-height: 1;
-  min-width: 32px;
-}
-
-.principle-text {
-  flex: 1;
-}
-
-.principle-text h4 {
-  font-family: var(--font-display);
-  font-size: 15px;
-  font-weight: 700;
-  margin-bottom: 4px;
-}
-
-.principle-text p {
-  font-size: 11px;
-  color: var(--text-dim);
-  line-height: 1.6;
-}
-
-/* =============================================
-   SECTION 10: EXECUTION SYSTEM
-   ============================================= */
-.exec-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-.exec-card {
-  padding: 20px;
-}
-
-.exec-card h3 {
-  font-family: var(--font-display);
-  font-size: 14px;
-  font-weight: 700;
-  margin-bottom: 16px;
-  color: var(--cyan);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.exec-input-group {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
-.exec-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 10px;
-  background: rgba(0,0,0,0.2);
-  border-radius: var(--radius);
-  margin-bottom: 6px;
-  font-size: 11px;
-  color: var(--text-dim);
-  gap: 8px;
-}
-
-.exec-item .item-text { flex: 1; }
-
-.weekly-day {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 10px;
-  border-radius: var(--radius);
-  margin-bottom: 4px;
-  font-size: 11px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.weekly-day:hover { background: var(--cyan-glow2); }
-.weekly-day.done { background: rgba(0,255,136,0.06); }
-
-.day-name { color: var(--text-dim); }
-.day-status { font-size: 9px; letter-spacing: 1px; text-transform: uppercase; }
-.day-status.done { color: var(--green); }
-.day-status.pending { color: var(--text-muted); }
-
-.session-log-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 6px 10px;
-  background: rgba(0,0,0,0.2);
-  border-radius: var(--radius);
-  margin-bottom: 4px;
-  font-size: 10px;
-}
-
-.session-log-item .log-topic { color: var(--text-dim); flex: 1; }
-.session-log-item .log-dur { color: var(--cyan); min-width: 50px; text-align: right; }
-.session-log-item .log-date { color: var(--text-muted); font-size: 9px; min-width: 70px; text-align: right; }
-
-/* =============================================
-   SECTION 11: LONG TERM VISION
-   ============================================= */
-.vision-card {
-  padding: 24px;
-  position: relative;
-  overflow: hidden;
-}
-
-.vision-card::after {
-  content: '';
-  position: absolute;
-  bottom: -20px; right: -20px;
-  width: 80px; height: 80px;
-  border-radius: 50%;
-  background: var(--cyan-glow);
-  filter: blur(30px);
-}
-
-.vision-year {
-  font-family: var(--font-display);
-  font-size: 11px;
-  letter-spacing: 3px;
-  color: var(--cyan);
-  text-transform: uppercase;
-  margin-bottom: 8px;
-}
-
-.vision-title {
-  font-family: var(--font-display);
-  font-size: 18px;
-  font-weight: 800;
-  margin-bottom: 10px;
-}
-
-.vision-desc {
-  font-size: 11px;
-  color: var(--text-dim);
-  line-height: 1.7;
-}
-
-.vision-tags { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 5px; }
-
-/* =============================================
-   SECTION 12: NOTES SYSTEM
-   ============================================= */
-.notes-layout {
-  display: grid;
-  grid-template-columns: 240px 1fr;
-  gap: 16px;
-  min-height: 500px;
-}
-
-.notes-list {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: var(--radius2);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-.notes-list-header {
-  padding: 12px 14px;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 11px;
-  color: var(--text-dim);
-}
-
-.notes-items { flex: 1; overflow-y: auto; }
-
-.note-list-item {
-  padding: 12px 14px;
-  border-bottom: 1px solid var(--border2);
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.note-list-item:hover, .note-list-item.active {
-  background: var(--cyan-glow2);
-}
-
-.note-list-item.active { border-left: 2px solid var(--cyan); }
-
-.note-item-title {
-  font-family: var(--font-display);
-  font-size: 12px;
-  font-weight: 700;
-  margin-bottom: 4px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.note-item-preview {
-  font-size: 10px;
-  color: var(--text-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.note-item-date { font-size: 9px; color: var(--text-muted); margin-top: 4px; }
-
-.notes-editor {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: var(--radius2);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.notes-editor-header {
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.note-title-input {
-  flex: 1;
-  background: none;
-  border: none;
-  font-family: var(--font-display);
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--text);
-  padding: 0;
-}
-
-.note-title-input:focus { outline: none; }
-
-.notes-editor-body {
-  flex: 1;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-}
-
-#note-content {
-  flex: 1;
-  background: none;
-  border: none;
-  color: var(--text-dim);
-  font-family: var(--font-mono);
-  font-size: 12px;
-  line-height: 1.8;
-  resize: none;
-  outline: none;
-  min-height: 360px;
-}
-
-.notes-editor-footer {
-  padding: 10px 16px;
-  border-top: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 10px;
-  color: var(--text-muted);
-}
-
-/* ========== ANIMATIONS ========== */
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes scanline {
-  from { transform: translateY(-100%); }
-  to { transform: translateY(100vh); }
-}
-
-.fade-in { animation: fadeIn 0.4s ease both; }
-
-/* ========== MOBILE MENU TOGGLE ========== */
-.menu-toggle {
-  display: none;
-  position: fixed;
-  top: 12px; left: 12px;
-  z-index: 200;
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 8px 10px;
-  cursor: pointer;
-  font-size: 16px;
-  color: var(--cyan);
-}
-
-/* ========== TOAST ========== */
-.toast {
-  position: fixed;
-  bottom: 20px; right: 20px;
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 10px 16px;
-  font-size: 11px;
-  color: var(--cyan);
-  z-index: 9999;
-  transform: translateY(60px);
   opacity: 0;
-  transition: all 0.3s;
-  box-shadow: 0 0 20px var(--cyan-glow);
+  transition: opacity 0.2s;
+  cursor: grab;
+  touch-action: none;
 }
 
-.toast.show { transform: translateY(0); opacity: 1; }
-
-/* ========== RESPONSIVE ========== */
-@media (max-width: 900px) {
-  .sidebar { transform: translateX(-100%); }
-  .sidebar.open { transform: translateX(0); }
-  .main-content { margin-left: 0; }
-  .menu-toggle { display: block; }
-  .telemetry-bar { left: 0; }
-  .hero-corner.tl { left: 60px; }
-  .hero-corner.bl { left: 60px; }
-  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
-  .exec-grid { grid-template-columns: 1fr; }
-  .notes-layout { grid-template-columns: 1fr; }
-  .form-row { grid-template-columns: 1fr; }
-  .research-meta-row { grid-template-columns: 1fr; }
+.drag-handle span {
+  display: block;
+  width: 14px; height: 1.5px;
+  background: var(--ink3);
+  border-radius: 99px;
 }
 
-@media (max-width: 600px) {
-  .section { padding: 24px 16px 40px; }
-  #hero { padding: 40px 16px; }
-  .hero-stats { gap: 16px; }
+.edit-mode .drag-handle { opacity: 1; }
+.edit-mode .step-node { pointer-events: none; }
+.edit-mode .tap-btn { display: none !important; }
+.edit-mode .step-name { color: var(--ink2) !important; font-weight: 400 !important; }
+
+.tap-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 7px 16px;
+  border-radius: 99px;
+  border: none;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+.tap-btn:active { transform: scale(0.97); }
+
+/* all done */
+.all-done { text-align: center; padding: 2.5rem 1rem; display: none; }
+.all-done.show { display: block; }
+.all-done-icon { font-size: 1.8rem; margin-bottom: 0.75rem; }
+.all-done h2 { font-family: 'Lora', serif; font-size: 1.2rem; font-weight: 400; font-style: italic; color: var(--ink2); margin-bottom: 0.4rem; }
+.all-done p { font-size: 0.8rem; color: var(--ink3); }
+
+/* bottom */
+.bottom-actions { margin-top: 2rem; display: flex; gap: 8px; flex-wrap: wrap; }
+
+.btn-ghost {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px;
+  border-radius: 99px;
+  border: 1px solid rgba(42,33,24,0.13);
+  background: transparent;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.78rem;
+  color: var(--ink3);
+  cursor: pointer;
+  transition: all 0.18s;
+}
+.btn-ghost:hover, .btn-ghost.active-btn { background: var(--surface2); color: var(--ink2); }
+
+/* inline edit inputs */
+.edit-mode .step-name-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-/* ========== SCROLLBAR ========== */
-::-webkit-scrollbar { width: 4px; height: 4px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(0,229,255,0.2); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(0,229,255,0.4); }
-
-/* ========== UTILITY ========== */
-.mt-8 { margin-top: 8px; }
-.mt-12 { margin-top: 12px; }
-.mt-16 { margin-top: 16px; }
-.mb-8 { margin-bottom: 8px; }
-.mb-12 { margin-bottom: 12px; }
-.flex { display: flex; }
-.items-center { align-items: center; }
-.justify-between { justify-content: space-between; }
-.gap-8 { gap: 8px; }
-.flex-1 { flex: 1; }
-.text-cyan { color: var(--cyan); }
-.text-dim { color: var(--text-dim); }
-.text-muted { color: var(--text-muted); }
-.text-sm { font-size: 11px; }
-.text-xs { font-size: 10px; }
-.w-full { width: 100%; }
-
-.empty-state {
-  text-align: center;
-  padding: 40px 20px;
-  color: var(--text-muted);
-  font-size: 12px;
+.name-input, .note-input {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(42,33,24,0.15);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.92rem;
+  color: var(--ink);
+  padding: 2px 0;
+  outline: none;
+  width: 100%;
 }
 
-.empty-state .empty-icon { font-size: 32px; margin-bottom: 8px; opacity: 0.3; }
+.note-input {
+  font-size: 0.74rem;
+  font-family: 'Lora', serif;
+  font-style: italic;
+  color: var(--ink2);
+}
 
-.divider {
-  height: 1px;
-  background: var(--border2);
-  margin: 16px 0;
+.name-input:focus, .note-input:focus { border-bottom-color: var(--accent); }
+
+.del-btn {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  border: 1px solid rgba(42,33,24,0.12);
+  background: transparent;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--ink3);
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-top: 5px;
+  transition: all 0.15s;
+}
+.del-btn:hover { background: #fdeaea; border-color: #f0b0b0; color: #b43232; }
+
+.add-step-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+  padding-left: 44px;
+  display: none;
+}
+.edit-mode .add-step-row { display: flex; }
+
+.add-step-btn {
+  background: transparent;
+  border: 1px dashed rgba(42,33,24,0.2);
+  border-radius: 99px;
+  padding: 6px 14px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.78rem;
+  color: var(--ink3);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.add-step-btn:hover { background: var(--surface2); color: var(--ink2); }
+
+@keyframes pop {
+  0% { transform: scale(0.5); opacity: 0; }
+  65% { transform: scale(1.3); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.popped svg { animation: pop 0.3s ease forwards; }
+
+/* ghost row during drag */
+.drag-ghost {
+  position: fixed;
+  pointer-events: none;
+  z-index: 999;
+  background: var(--surface);
+  border-radius: 10px;
+  padding: 8px 12px;
+  box-shadow: 0 4px 20px rgba(42,33,24,0.15);
+  font-size: 0.9rem;
+  color: var(--ink2);
+  max-width: 280px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border: 1px solid rgba(42,33,24,0.1);
+  opacity: 0.95;
 }
 </style>
 </head>
 <body>
+<div class="wrap">
+  <header>
+    <div class="logo">ritme<em>.</em></div>
+    <div class="sub" id="dateLabel"></div>
+  </header>
 
-<canvas id="bg-canvas"></canvas>
+  <div class="top-bar">
+    <div class="prog-text"><span id="doneCount">0</span> selesai</div>
+    <div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+    <div class="prog-text" id="totalCount">dari 0</div>
+  </div>
 
-<button class="menu-toggle" id="menuToggle">☰</button>
+  <div class="chain-list" id="chainList"></div>
+  <div class="add-step-row" id="addStepRow">
+    <button class="add-step-btn" onclick="addStep()">+ tambah langkah</button>
+  </div>
 
-<!-- TOAST -->
-<div class="toast" id="toast"></div>
+  <div class="all-done" id="allDone">
+    <div class="all-done-icon">✦</div>
+    <h2>hari ini selesai.</h2>
+    <p>semua ritme terjaga.</p>
+  </div>
 
-<!-- MODAL -->
-<div class="modal-overlay" id="modal-overlay">
-  <div class="modal" id="modal-content">
-    <div class="modal-header">
-      <h3 id="modal-title">Modal</h3>
-      <button class="close-btn" onclick="closeModal()">✕</button>
-    </div>
-    <div class="modal-body" id="modal-body"></div>
-    <div class="modal-footer" id="modal-footer"></div>
+  <div class="bottom-actions">
+    <button class="btn-ghost" onclick="resetAll()">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.35"/></svg>
+      ulangi
+    </button>
+    <button class="btn-ghost" id="editToggleBtn" onclick="toggleEdit()">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>
+      susun ritme
+    </button>
   </div>
 </div>
 
-<!-- MAIN LAYOUT -->
-<div class="main-layout">
-
-  <!-- SIDEBAR -->
-  <nav class="sidebar" id="sidebar">
-    <div class="sidebar-logo">
-      <div class="logo-text">NEXUS</div>
-      <div class="logo-sub">Robotics Mission Control // v1.0</div>
-    </div>
-    <div class="sidebar-nav">
-      <div class="nav-section-label">Navigation</div>
-      <a class="nav-item" href="#hero"><span class="nav-icon">⬡</span> Mission HQ</a>
-      <a class="nav-item" href="#mission"><span class="nav-icon">◈</span> Core Mission</a>
-      <a class="nav-item" href="#specmap"><span class="nav-icon">◎</span> Skill Map</a>
-      <a class="nav-item" href="#roadmap"><span class="nav-icon">▷</span> Roadmap</a>
-      <a class="nav-item" href="#projects"><span class="nav-icon">◇</span> Projects</a>
-      <a class="nav-item" href="#knowledge"><span class="nav-icon">◉</span> Knowledge</a>
-      <a class="nav-item" href="#research"><span class="nav-icon">⊞</span> Research</a>
-      <a class="nav-item" href="#ideas"><span class="nav-icon">◈</span> Ideas Vault</a>
-      <a class="nav-item" href="#ethics"><span class="nav-icon">⧖</span> Ethical Compass</a>
-      <a class="nav-item" href="#execution"><span class="nav-icon">▶</span> Execution</a>
-      <a class="nav-item" href="#vision"><span class="nav-icon">◯</span> Long Term Vision</a>
-      <a class="nav-item" href="#notes"><span class="nav-icon">⊟</span> Notes</a>
-    </div>
-    <div class="sidebar-footer">
-      <div>SYSTEM ONLINE // <span id="sb-time"></span></div>
-      <div style="margin-top:4px;color:var(--cyan)">● MISSION ACTIVE</div>
-    </div>
-  </nav>
-
-  <!-- MAIN -->
-  <main class="main-content">
-
-    <!-- =========================================
-         SECTION 1: HERO
-         ========================================= -->
-    <section id="hero">
-      <div class="hero-grid-overlay"></div>
-      <div class="hero-corner tl">SYS:NEXUS-01 // TELEROBOTICS LAB</div>
-      <div class="hero-corner tr" id="hero-datetime"></div>
-      <div class="hero-corner bl">STATUS: ACTIVE</div>
-      <div class="hero-corner br">LAT:0.0000 // LNG:0.0000</div>
-
-      <div class="hero-tag">Robotics Engineer</div>
-
-      <div class="hero-name">
-        <span id="hero-display-name">Your Name</span><br>
-        <span class="highlight" id="hero-display-role">Teleoperation &amp; HRI Specialist</span>
-      </div>
-
-      <div class="hero-title" id="hero-display-title">Human-Centered Robotics // Rescue Systems // Shared Autonomy</div>
-
-      <div class="hero-mission" id="hero-mission-text">
-        "Build robotics systems that extend human capability in dangerous environments."
-      </div>
-
-      <div class="hero-stats">
-        <div class="hero-stat">
-          <div class="stat-val" id="stat-projects">0</div>
-          <div class="stat-label">Projects</div>
-        </div>
-        <div class="hero-stat">
-          <div class="stat-val" id="stat-ideas">0</div>
-          <div class="stat-label">Ideas Logged</div>
-        </div>
-        <div class="hero-stat">
-          <div class="stat-val" id="stat-notes">0</div>
-          <div class="stat-label">Notes</div>
-        </div>
-        <div class="hero-stat">
-          <div class="stat-val" id="stat-phase">0</div>
-          <div class="stat-label">Phase Progress</div>
-        </div>
-      </div>
-
-      <div class="hero-focus">
-        <span class="focus-label">Current Focus</span>
-        <span class="focus-value" id="hero-focus-display" onclick="editHeroFocus()">Click to set current focus</span>
-        <button class="btn btn-ghost btn-sm" onclick="openHeroEditor()">✎ Edit Profile</button>
-      </div>
-
-      <div class="telemetry-bar">
-        <div class="telem-item"><div class="telem-dot"></div>MISSION CONTROL ACTIVE</div>
-        <div class="telem-item"><div class="telem-dot orange"></div>HAZARDOUS ENV SPECIALIST</div>
-        <div class="telem-item">TELEOPERATION // RESCUE ROBOTICS // HRI // SHARED AUTONOMY</div>
-        <div class="telem-item">// DO NOT REPLACE THE HUMAN. EXTEND THE HUMAN. //</div>
-      </div>
-    </section>
-
-    <!-- =========================================
-         SECTION 2: CORE MISSION
-         ========================================= -->
-    <section id="mission" class="section">
-      <div class="section-header">
-        <div class="section-title">
-          Core Mission <span class="title-tag">WHY</span>
-        </div>
-      </div>
-
-      <div class="core-manifesto">
-        <p>"Do not replace the human.<br>Extend the human."</p>
-        <p class="sub">The guiding philosophy behind every system, every line of code, every design decision.</p>
-      </div>
-
-      <div class="grid-2" id="mission-cards-container">
-        <!-- Loaded from data -->
-      </div>
-    </section>
-
-    <!-- =========================================
-         SECTION 3: SPECIALIZATION MAP
-         ========================================= -->
-    <section id="specmap" class="section">
-      <div class="section-header">
-        <div class="section-title">
-          Specialization Map <span class="title-tag">SKILLS</span>
-        </div>
-        <button class="btn btn-ghost btn-sm" onclick="openSkillEditor()">+ Add Domain</button>
-      </div>
-
-      <div class="skill-tree" id="skill-tree-container">
-        <!-- Loaded from data -->
-      </div>
-    </section>
-
-    <!-- =========================================
-         SECTION 4: ACTION ROADMAP
-         ========================================= -->
-    <section id="roadmap" class="section">
-      <div class="section-header">
-        <div class="section-title">
-          Action Roadmap <span class="title-tag">PHASES</span>
-        </div>
-        <button class="btn btn-ghost btn-sm" onclick="openPhaseEditor()">+ Add Phase</button>
-      </div>
-
-      <div class="roadmap-timeline" id="roadmap-container">
-        <!-- Loaded from data -->
-      </div>
-    </section>
-
-    <!-- =========================================
-         SECTION 5: PROJECT PIPELINE
-         ========================================= -->
-    <section id="projects" class="section">
-      <div class="section-header">
-        <div class="section-title">
-          Project Pipeline <span class="title-tag">BUILDS</span>
-        </div>
-        <button class="btn btn-primary btn-sm" onclick="openProjectEditor()">+ New Project</button>
-      </div>
-
-      <div class="grid-3" id="project-container">
-        <!-- Loaded from data -->
-      </div>
-    </section>
-
-    <!-- =========================================
-         SECTION 6: KNOWLEDGE TRACKER
-         ========================================= -->
-    <section id="knowledge" class="section">
-      <div class="section-header">
-        <div class="section-title">
-          Knowledge Tracker <span class="title-tag">LEARNING</span>
-        </div>
-        <button class="btn btn-ghost btn-sm" onclick="openKnowledgeEditor()">+ Add Topic</button>
-      </div>
-
-      <div class="grid-3" id="knowledge-container">
-        <!-- Loaded from data -->
-      </div>
-    </section>
-
-    <!-- =========================================
-         SECTION 7: RESEARCH DIRECTIONS
-         ========================================= -->
-    <section id="research" class="section">
-      <div class="section-header">
-        <div class="section-title">
-          Research Directions <span class="title-tag">R&amp;D</span>
-        </div>
-        <button class="btn btn-ghost btn-sm" onclick="openResearchEditor()">+ Add Research</button>
-      </div>
-
-      <div class="grid-2" id="research-container">
-        <!-- Loaded from data -->
-      </div>
-    </section>
-
-    <!-- =========================================
-         SECTION 8: IDEAS VAULT
-         ========================================= -->
-    <section id="ideas" class="section">
-      <div class="section-header">
-        <div class="section-title">
-          Ideas Vault <span class="title-tag">CAPTURE</span>
-        </div>
-      </div>
-
-      <div class="idea-input-area">
-        <h3>⚡ Capture Idea</h3>
-        <div class="form-group">
-          <label>Idea Title</label>
-          <input type="text" id="idea-title-input" placeholder="What's the idea?" />
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Category</label>
-            <select id="idea-cat-input">
-              <option>Teleoperation</option>
-              <option>Rescue Robotics</option>
-              <option>HRI</option>
-              <option>Shared Autonomy</option>
-              <option>Hardware</option>
-              <option>Software</option>
-              <option>Research</option>
-              <option>System Design</option>
-              <option>Other</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Importance (1–5)</label>
-            <input type="number" id="idea-importance-input" min="1" max="5" value="3" />
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Tags (comma separated)</label>
-          <input type="text" id="idea-tags-input" placeholder="ros2, haptics, bilateral control" />
-        </div>
-        <div class="form-group">
-          <label>Details</label>
-          <textarea id="idea-detail-input" placeholder="Describe the idea in more detail..."></textarea>
-        </div>
-        <button class="btn btn-primary" onclick="addIdea()">⚡ Log Idea</button>
-      </div>
-
-      <div id="ideas-container">
-        <!-- Loaded from data -->
-      </div>
-    </section>
-
-    <!-- =========================================
-         SECTION 9: ETHICAL COMPASS
-         ========================================= -->
-    <section id="ethics" class="section">
-      <div class="section-header">
-        <div class="section-title">
-          Ethical Compass <span class="title-tag">PRINCIPLES</span>
-        </div>
-      </div>
-
-      <div class="ethics-hero">
-        <h2>"Build systems that save lives,<br>not systems that erase livelihoods."</h2>
-        <p>This section is your moral anchor. Return here when you feel lost. Your work must be grounded in human dignity and human protection — always.</p>
-      </div>
-
-      <div id="principles-container">
-        <!-- Loaded from data -->
-      </div>
-    </section>
-
-    <!-- =========================================
-         SECTION 10: EXECUTION SYSTEM
-         ========================================= -->
-    <section id="execution" class="section">
-      <div class="section-header">
-        <div class="section-title">
-          Execution System <span class="title-tag">DAILY OPS</span>
-        </div>
-      </div>
-
-      <div class="exec-grid">
-        <!-- Today's Focus -->
-        <div class="card exec-card">
-          <h3>⬡ Today's Focus</h3>
-          <div class="form-group">
-            <textarea id="today-focus" placeholder="What are you building or learning today?" style="min-height:80px"></textarea>
-          </div>
-          <div class="form-group">
-            <label>Current Blocker</label>
-            <input type="text" id="today-blocker" placeholder="What's in the way?" />
-          </div>
-          <div class="form-group">
-            <label>Next Action</label>
-            <input type="text" id="today-next" placeholder="The one thing to do next" />
-          </div>
-          <button class="btn btn-primary btn-sm w-full" onclick="saveTodayFocus()">Save Daily State</button>
-        </div>
-
-        <!-- Weekly Targets -->
-        <div class="card exec-card">
-          <h3>◈ Weekly Targets</h3>
-          <div class="exec-input-group">
-            <input type="text" id="weekly-target-input" placeholder="Add target..." />
-            <button class="btn btn-ghost btn-sm" onclick="addWeeklyTarget()" style="white-space:nowrap">+ Add</button>
-          </div>
-          <div id="weekly-targets-list"></div>
-        </div>
-
-        <!-- Deep Work Tracker -->
-        <div class="card exec-card">
-          <h3>▶ Deep Work Sessions</h3>
-          <div class="exec-input-group" style="flex-wrap:wrap;gap:6px">
-            <input type="text" id="session-topic-input" placeholder="Topic" style="flex:2;min-width:120px" />
-            <input type="number" id="session-dur-input" placeholder="hrs" style="width:60px" min="0.5" max="12" step="0.5" value="1" />
-            <button class="btn btn-ghost btn-sm" onclick="logSession()" style="white-space:nowrap">Log</button>
-          </div>
-          <div id="session-log-list"></div>
-        </div>
-
-        <!-- Weekly Days -->
-        <div class="card exec-card">
-          <h3>◎ Week Progress</h3>
-          <div id="weekly-days-container"></div>
-          <div class="divider"></div>
-          <div class="flex justify-between text-xs text-muted">
-            <span>Days logged this week:</span>
-            <span id="days-done-count" class="text-cyan">0 / 7</span>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- =========================================
-         SECTION 11: LONG TERM VISION
-         ========================================= -->
-    <section id="vision" class="section">
-      <div class="section-header">
-        <div class="section-title">
-          Long Term Vision <span class="title-tag">FUTURE</span>
-        </div>
-        <button class="btn btn-ghost btn-sm" onclick="openVisionEditor()">+ Add Vision</button>
-      </div>
-
-      <div class="grid-2" id="vision-container">
-        <!-- Loaded from data -->
-      </div>
-    </section>
-
-    <!-- =========================================
-         SECTION 12: NOTES SYSTEM
-         ========================================= -->
-    <section id="notes" class="section">
-      <div class="section-header">
-        <div class="section-title">
-          Notes System <span class="title-tag">LOCAL</span>
-        </div>
-        <button class="btn btn-primary btn-sm" onclick="newNote()">+ New Note</button>
-      </div>
-
-      <div class="notes-layout">
-        <div class="notes-list">
-          <div class="notes-list-header">
-            <span>Notes</span>
-            <span id="notes-count" class="text-cyan">0</span>
-          </div>
-          <div class="notes-items" id="notes-list-container"></div>
-        </div>
-
-        <div class="notes-editor">
-          <div class="notes-editor-header">
-            <input type="text" class="note-title-input" id="note-title-input" placeholder="Note title..." />
-            <button class="btn btn-primary btn-sm" onclick="saveNote()">Save</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteNote()">Delete</button>
-          </div>
-          <div class="notes-editor-body">
-            <textarea id="note-content" placeholder="Start writing... (auto-saved when you click Save)"></textarea>
-          </div>
-          <div class="notes-editor-footer">
-            <span id="note-meta">No note selected</span>
-            <span>Ctrl+S to save</span>
-          </div>
-        </div>
-      </div>
-    </section>
-
-  </main>
-</div>
+<!-- drag ghost -->
+<div class="drag-ghost" id="dragGhost" style="display:none"></div>
 
 <script>
-// ============================================================
-//  STATE MANAGEMENT
-// ============================================================
+const DEFAULTS = [
+  { id:'r1',  name:'minum air putih',    note:'satu gelas, pelan-pelan',          done:false },
+  { id:'r2',  name:'dzikir pagi',         note:'hadirkan hati',                    done:false },
+  { id:'r3',  name:'belajar mandiri',     note:'sesi fokus sebelum dunia berisik', done:false },
+  { id:'r4',  name:'siap kuliah',         note:'',                                 done:false },
+  { id:'r5',  name:'kuliah',              note:'',                                 done:false },
+  { id:'r6',  name:'makan & istirahat',   note:'rebahan dulu gapapa',              done:false },
+  { id:'r7',  name:'review catatan',      note:'selagi masih segar',               done:false },
+  { id:'r8',  name:'olahraga ringan',     note:'jalan kaki, stretching',           done:false },
+  { id:'r9',  name:'skincare',            note:'jangan skip, ini investasi',       done:false },
+  { id:'r10', name:'matikan semua notif', note:'dunia bisa menunggu',              done:false },
+  { id:'r11', name:"baca Al-Qur'an",      note:'pelan, resapi, biarkan masuk ke hati', done:false },
+];
 
-const STORAGE_KEY = 'nexus_data_v2';
+let steps = [];
+let editMode = false;
 
-const defaultData = {
-  hero: {
-    name: 'Your Name',
-    role: 'Teleoperation & HRI Specialist',
-    title: 'Human-Centered Robotics // Rescue Systems // Shared Autonomy',
-    mission: 'Build robotics systems that extend human capability in dangerous environments.',
-    focus: 'Phase 0 — Building Foundations'
-  },
+// drag state
+let dragIdx = null;
+let dragOverIdx = null;
+let dragGhostEl = document.getElementById('dragGhost');
+let touchStartY = 0;
+let touchCurY = 0;
 
-  missionCards: [
-    { id: 1, icon: '🎮', title: 'Why Teleoperation Matters', body: 'Teleoperation puts a trained human mind inside an uncrewed body — physically separated from danger but cognitively present. It is the bridge between human judgment and mechanical reach. When the environment is toxic, explosive, or structurally unstable, teleoperation means the expert never has to enter.', tagline: '"Send the machine, keep the human."', accent: 'cyan' },
-    { id: 2, icon: '🧠', title: 'Why Human-Centered Robotics Matters', body: 'Most automation removes the human. Human-centered robotics argues the opposite: the human is the most valuable asset in the loop. Robots should reduce physical risk, extend reach, and amplify judgment — not eliminate the operator.', tagline: '"The human is not the bottleneck. The human is the intelligence."', accent: 'cyan' },
-    { id: 3, icon: '⚡', title: 'Why Shared Autonomy Matters', body: 'Full autonomy fails in unstructured, chaotic environments. Full manual control overwhelms operators under stress. Shared autonomy is the sweet spot — the robot handles low-level reactive tasks while the human handles high-level judgment and intent. It is the only scalable path for real-world rescue robotics.', tagline: '"Human judgment + machine precision = shared power."', accent: 'orange' },
-    { id: 4, icon: '🚨', title: 'Why Rescue Robotics Matters', body: 'Firefighters, bomb disposal technicians, disaster responders, and HAZMAT teams operate in conditions that kill. Rescue robotics is not a research curiosity — it is a life-or-death engineering domain. Every system built here has a direct line to saving human lives.', tagline: '"If we build it right, someone goes home tonight."', accent: 'orange' }
-  ],
+function uid() { return '_' + Math.random().toString(36).substr(2,9); }
 
-  skillDomains: [
-    {
-      id: 1, name: 'Teleoperation & HRI', color: 'cyan',
-      skills: [
-        { name: 'Master-Slave Control', status: 'inprogress' },
-        { name: 'Bilateral Control', status: 'todo' },
-        { name: 'Haptic Feedback', status: 'todo' },
-        { name: 'WebRTC Streaming', status: 'todo' },
-        { name: 'Low-Latency Networks', status: 'todo' },
-        { name: 'Operator Interface Design', status: 'todo' }
-      ]
-    },
-    {
-      id: 2, name: 'ROS2 & Robotics', color: 'cyan',
-      skills: [
-        { name: 'ROS2 Basics', status: 'inprogress' },
-        { name: 'TF2 Transforms', status: 'todo' },
-        { name: 'Nav2 Stack', status: 'todo' },
-        { name: 'MoveIt2', status: 'todo' },
-        { name: 'Custom Nodes', status: 'todo' }
-      ]
-    },
-    {
-      id: 3, name: 'Control Systems', color: 'cyan',
-      skills: [
-        { name: 'PID Control', status: 'inprogress' },
-        { name: 'State Space', status: 'todo' },
-        { name: 'Impedance Control', status: 'todo' },
-        { name: 'Force Control', status: 'todo' }
-      ]
-    },
-    {
-      id: 4, name: 'Computer Vision', color: 'cyan',
-      skills: [
-        { name: 'OpenCV Basics', status: 'inprogress' },
-        { name: 'Depth Cameras', status: 'todo' },
-        { name: 'Object Detection', status: 'todo' },
-        { name: 'SLAM', status: 'todo' },
-        { name: 'Point Clouds', status: 'todo' }
-      ]
-    },
-    {
-      id: 5, name: 'Embedded Systems', color: 'orange',
-      skills: [
-        { name: 'ESP32', status: 'inprogress' },
-        { name: 'Arduino', status: 'done' },
-        { name: 'Raspberry Pi', status: 'inprogress' },
-        { name: 'RTOS', status: 'todo' },
-        { name: 'CAN Bus', status: 'todo' }
-      ]
-    },
-    {
-      id: 6, name: 'Programming', color: 'cyan',
-      skills: [
-        { name: 'Python', status: 'inprogress' },
-        { name: 'C++', status: 'inprogress' },
-        { name: 'Linux/Bash', status: 'inprogress' },
-        { name: 'CMake/Build Systems', status: 'todo' }
-      ]
-    },
-    {
-      id: 7, name: 'AI & ML', color: 'cyan',
-      skills: [
-        { name: 'ML Fundamentals', status: 'todo' },
-        { name: 'Reinforcement Learning', status: 'todo' },
-        { name: 'Imitation Learning', status: 'todo' },
-        { name: 'Sim-to-Real Transfer', status: 'todo' }
-      ]
-    },
-    {
-      id: 8, name: 'Networking', color: 'orange',
-      skills: [
-        { name: 'TCP/UDP Sockets', status: 'todo' },
-        { name: 'WebRTC', status: 'todo' },
-        { name: 'MQTT', status: 'todo' },
-        { name: 'Low-Latency Video', status: 'todo' }
-      ]
-    }
-  ],
-
-  phases: [
-    {
-      id: 1, tag: 'PHASE 0', title: 'Foundations', progress: 30,
-      active: true,
-      objectives: 'Build the core engineering foundation across software, hardware, and mathematics.',
-      techs: ['Python', 'C++', 'Electronics', 'ESP32', 'PID', 'Linear Algebra', 'ROS2 Basics', 'Linux'],
-      milestones: [
-        { text: 'Complete Python fundamentals', done: true },
-        { text: 'Complete C++ basics', done: false },
-        { text: 'Electronics: resistors, capacitors, motors', done: true },
-        { text: 'Build first ESP32 project', done: false },
-        { text: 'Implement PID controller', done: false },
-        { text: 'Linear algebra review (3Blue1Brown)', done: false },
-        { text: 'Install and configure ROS2', done: false }
-      ]
-    },
-    {
-      id: 2, tag: 'PHASE 1', title: 'FPV Teleoperation Rover', progress: 0,
-      objectives: 'Build a functional first-person-view teleoperated ground robot with live video streaming and remote control.',
-      techs: ['ESP32', 'WiFi', 'FPV Camera', 'Python', 'WebSocket', 'Motor Control', 'L298N'],
-      milestones: [
-        { text: 'Build 4WD chassis', done: false },
-        { text: 'Implement motor driver control', done: false },
-        { text: 'Stream live video via WebSocket', done: false },
-        { text: 'Build web-based control interface', done: false },
-        { text: 'Test at 30m range', done: false }
-      ]
-    },
-    {
-      id: 3, tag: 'PHASE 2', title: 'Master-Slave Robotic Arm', progress: 0,
-      objectives: 'Design and implement a master-slave robotic arm system where operator movements map directly to the slave arm.',
-      techs: ['ROS2', 'Servos', '3D Printing', 'IMU', 'Inverse Kinematics', 'Python', 'C++'],
-      milestones: [
-        { text: 'Design arm geometry and kinematics', done: false },
-        { text: 'Build master controller arm', done: false },
-        { text: 'Build slave actuated arm', done: false },
-        { text: 'Implement kinematic mirroring', done: false },
-        { text: 'Add live camera view', done: false }
-      ]
-    },
-    {
-      id: 4, tag: 'PHASE 3', title: 'Shared Autonomy Systems', progress: 0,
-      objectives: 'Layer intelligent autonomy on top of teleoperation — obstacle avoidance, assisted grasping, path following while human controls high-level intent.',
-      techs: ['ROS2', 'Nav2', 'SLAM', 'OpenCV', 'MoveIt2', 'Machine Learning'],
-      milestones: [
-        { text: 'Implement SLAM-based mapping', done: false },
-        { text: 'Add autonomous obstacle avoidance', done: false },
-        { text: 'Build assisted grasping system', done: false },
-        { text: 'Human override at any point', done: false }
-      ]
-    },
-    {
-      id: 5, tag: 'PHASE 4', title: 'Hazardous Environment Telepresence', progress: 0,
-      objectives: 'Build a full telepresence robot for hazardous environments — durable, sealed, with haptic feedback and 360 stereo vision.',
-      techs: ['ROS2', 'WebRTC', 'Haptic Gloves', 'Stereo Camera', 'IMU', 'Force Sensors', 'Network QoS'],
-      milestones: [
-        { text: 'Waterproof/dustproof chassis', done: false },
-        { text: 'Stereo 3D camera integration', done: false },
-        { text: 'Basic haptic feedback loop', done: false },
-        { text: 'Low-latency WebRTC streaming', done: false },
-        { text: 'Operator HMD integration', done: false }
-      ]
-    },
-    {
-      id: 6, tag: 'PHASE 5', title: 'Advanced Research & Publishing', progress: 0,
-      objectives: 'Contribute to the academic body of knowledge in telerobotics, shared autonomy, and human-robot interaction. Build research-grade systems.',
-      techs: ['Academic Writing', 'ROS2', 'Deep Learning', 'Simulation (Gazebo/Isaac)', 'Human Subject Studies'],
-      milestones: [
-        { text: 'Submit first conference paper', done: false },
-        { text: 'Build Gazebo simulation environment', done: false },
-        { text: 'Conduct HRI user study', done: false },
-        { text: 'Collaborate with research lab', done: false }
-      ]
-    }
-  ],
-
-  projects: [
-    { id: 1, title: 'Firefighting Telepresence Robot', type: 'hazardous', mission: 'Deploy a remote-controlled robot into active fire zones, giving firefighters visibility and manipulation capability without physical exposure to flames or toxic gas.', techs: ['Thermal Camera', 'ROS2', 'WebRTC', 'Fire-Rated Chassis', 'CO2 Sensor', 'Haptics'], difficulty: 4, impact: 'Reduces firefighter fatalities. Provides situational awareness in zero-visibility environments.', notes: '' },
-    { id: 2, title: 'Bomb Disposal Robot', type: 'hazardous', mission: 'Precision teleoperated manipulation system for IED/EOD operations with haptic force feedback and stereoscopic vision to give operators tactile and visual presence.', techs: ['6DOF Arm', 'Force Sensors', 'Haptic Gloves', 'Stereo Camera', 'WebRTC', 'Lead-Lined Housing'], difficulty: 5, impact: 'EOD technicians face extreme mortality risk. This system keeps operators 500m+ away.', notes: '' },
-    { id: 3, title: 'Disaster Rescue Rover', type: 'rescue', mission: 'Ground rover for collapsed building search and rescue — navigates rubble, detects survivors via thermal and audio, transmits telemetry to rescue coordinator.', techs: ['Tracked Drive', 'Thermal Camera', 'SLAM', 'ROS2', 'CO2/O2 Sensors', 'Audio Pickup'], difficulty: 4, impact: 'The golden hour in disaster rescue is real. Every minute of faster survivor detection saves lives.', notes: '' },
-    { id: 4, title: 'Hazardous Chemical Inspection Robot', type: 'hazardous', mission: 'Chemical plant inspection and leak detection robot for environments with toxic gas, corrosive surfaces, or explosive vapor — keeps inspectors safe.', techs: ['Gas Sensors', 'Explosion-Proof Housing', 'ROS2', 'SLAM', 'PTZ Camera', 'ATEX Compliance'], difficulty: 4, impact: 'Chemical plant accidents cause mass casualties. Robotic inspection removes humans from the danger zone.', notes: '' },
-    { id: 5, title: 'Underwater Teleoperation ROV', type: 'rescue', mission: 'Sub-surface teleoperated vehicle for underwater rescue, pipeline inspection, and wreck investigation — extends human reach beneath the surface.', techs: ['Waterproof Housing', 'Thrusters', 'Sonar', 'Low-Latency Tether', 'Manipulator Arm', 'Depth Sensor'], difficulty: 4, impact: 'Search and rescue divers face decompression risk and poor visibility. ROVs remove human divers from danger.', notes: '' },
-    { id: 6, title: 'Remote Industrial Maintenance Robot', type: 'rescue', mission: 'Industrial maintenance robot for nuclear, offshore oil, or high-voltage environments — allows engineers to perform physical maintenance tasks without entering the hazard zone.', techs: ['Heavy Manipulation Arm', 'ROS2', 'WebRTC', 'Haptic Feedback', 'Radiation-Hard Electronics', '7DOF Arm'], difficulty: 5, impact: 'Nuclear maintenance workers accumulate lifetime radiation doses. Remote operation eliminates that exposure.', notes: '' },
-    { id: 7, title: 'Shared Autonomy Rescue Platform', type: 'rescue', mission: 'A semi-autonomous rescue robot that handles low-level navigation autonomously but defers to the human operator for complex decisions — optimized for disaster response.', techs: ['ROS2', 'Nav2', 'LLM Intent Parsing', 'Shared Autonomy Framework', 'Multi-Modal UI', 'Haptics'], difficulty: 5, impact: 'Cognitive overload kills decision-making in rescue ops. This system reduces operator cognitive load by 60%.', notes: '' }
-  ],
-
-  knowledge: [
-    { id: 1, name: 'ROS2', pct: 20, stage: 'learning', notes: '', resources: [] },
-    { id: 2, name: 'OpenCV', pct: 30, stage: 'learning', notes: '', resources: [] },
-    { id: 3, name: 'SLAM', pct: 5, stage: 'exploration', notes: '', resources: [] },
-    { id: 4, name: 'Path Planning', pct: 5, stage: 'exploration', notes: '', resources: [] },
-    { id: 5, name: 'Kinematics', pct: 15, stage: 'learning', notes: '', resources: [] },
-    { id: 6, name: 'Inverse Kinematics', pct: 10, stage: 'learning', notes: '', resources: [] },
-    { id: 7, name: 'WebRTC', pct: 5, stage: 'exploration', notes: '', resources: [] },
-    { id: 8, name: 'Haptics', pct: 5, stage: 'exploration', notes: '', resources: [] },
-    { id: 9, name: 'Embedded Systems', pct: 40, stage: 'intermediate', notes: '', resources: [] },
-    { id: 10, name: 'Computer Vision', pct: 25, stage: 'learning', notes: '', resources: [] },
-    { id: 11, name: 'Networking', pct: 20, stage: 'learning', notes: '', resources: [] },
-    { id: 12, name: 'Control Systems', pct: 15, stage: 'learning', notes: '', resources: [] }
-  ],
-
-  research: [
-    { id: 1, name: 'Shared Autonomy', interest: 5, why: 'The most critical unsolved problem in rescue robotics — how do you split decision-making between a stressed human and a partially autonomous system in real-time?', future: 'Medical robotics, disaster response, nuclear maintenance, deep sea operations.', explanation: 'Shared autonomy combines human intent with robot autonomy — the human specifies goals, the robot executes safely.', notes: '' },
-    { id: 2, name: 'Haptic Feedback', interest: 5, why: 'Touch is how we manipulate the physical world. Without haptic feedback, teleoperation is like handling objects with thick gloves and blindfold. Bilateral force feedback is what makes remote manipulation viable for precise tasks.', future: 'Surgical robotics, EOD, remote surgery, industrial maintenance.', explanation: 'Haptic feedback transmits force, texture, and resistance data from robot to operator, closing the sensory loop.', notes: '' },
-    { id: 3, name: 'Telepresence Robotics', interest: 5, why: 'Full sensory presence in a remote environment — vision, audio, haptics — is the long-term goal. When telepresence is good enough, physical distance becomes irrelevant for skilled work.', future: 'Remote surgery at disaster sites, offshore operations, nuclear plant maintenance.', explanation: 'Telepresence goes beyond remote control — it creates a sense of being there through multi-modal sensory feedback.', notes: '' },
-    { id: 4, name: 'Bilateral Control', interest: 4, why: 'The mathematical foundation of master-slave manipulation — position or force synchronization between master and slave. Getting latency-stable bilateral control right is the core engineering challenge.', future: 'All high-fidelity teleoperation systems.', explanation: 'Bilateral control architectures allow forces and positions to be shared bidirectionally between operator and robot.', notes: '' },
-    { id: 5, name: 'Low Latency Systems', interest: 4, why: 'Teleoperation is only viable below ~150ms end-to-end latency for most tasks. Network architecture, video encoding, and control loop timing are all critical.', future: 'All real-time teleoperation deployments.', explanation: 'System design to minimize control loop delay from operator input to robot actuation and back.', notes: '' },
-    { id: 6, name: 'Human-Robot Interaction', interest: 5, why: 'Even technically perfect robots fail if humans cannot use them effectively under stress. HRI research studies how humans interact with robots — interface design, trust calibration, situational awareness.', future: 'Every robot deployed in human environments.', explanation: 'HRI examines the cognitive, physical, and social aspects of how humans and robots work together.', notes: '' }
-  ],
-
-  ideas: [],
-
-  principles: [
-    { id: 1, title: 'Technology should protect humans', body: 'Every engineering decision must be evaluated through the lens of human safety. If a system increases risk to the operator or bystander, it must be redesigned.' },
-    { id: 2, title: 'Augment before replacing', body: 'The default position is augmentation. Automation is only ethically defensible when no human can safely or effectively perform the task, or when automation provides a safe transition path.' },
-    { id: 3, title: 'Keep humans in meaningful control', body: 'The human must remain the decision-making authority in high-stakes systems. Full autonomy in life-critical applications requires extraordinary validation — and still carries ethical weight.' },
-    { id: 4, title: 'Design for the worst day', body: 'Safety-critical robotics must be designed for system failure, not system success. What happens when the network drops? When a sensor fails? When the operator panics? Design for that.' },
-    { id: 5, title: 'Reduce physical risk to people', body: 'The most direct ethical contribution of rescue robotics is measurable: fewer injuries, fewer fatalities, fewer people exposed to harm. Optimize for this outcome explicitly.' },
-    { id: 6, title: 'Human dignity is non-negotiable', body: 'Technology that demeans, surveils, or reduces the autonomy of workers or individuals — even indirectly — is ethically unacceptable. Build with dignity as a design constraint.' },
-    { id: 7, title: 'Robotics extends human capability', body: 'The da Vinci surgical system does not replace the surgeon. It extends the surgeon\'s reach, precision, and stability. This is the model. The robot is a tool. The human is the professional.' }
-  ],
-
-  execution: {
-    todayFocus: '',
-    todayBlocker: '',
-    todayNext: '',
-    weeklyTargets: [],
-    sessions: [],
-    weekDays: [
-      { day: 'Monday', done: false },
-      { day: 'Tuesday', done: false },
-      { day: 'Wednesday', done: false },
-      { day: 'Thursday', done: false },
-      { day: 'Friday', done: false },
-      { day: 'Saturday', done: false },
-      { day: 'Sunday', done: false }
-    ]
-  },
-
-  vision: [
-    { id: 1, year: '3–5 Years', title: 'Build a research-grade teleoperation testbed', desc: 'A full master-slave bilateral control system with haptic feedback, stereo vision, and shared autonomy stack — capable of real-world rescue task demonstrations.', tags: ['Teleoperation', 'Haptics', 'HRI', 'Rescue'] },
-    { id: 2, year: '5–8 Years', title: 'Launch research in hazardous environment robotics', desc: 'Conduct formal user studies on operator performance in telepresence systems. Publish findings in HRI, ICRA, or IROS. Build relationships with defense, USAR, and nuclear industries.', tags: ['Research', 'Publishing', 'Academia', 'ICRA'] },
-    { id: 3, year: '8–12 Years', title: 'Deploy systems that save lives', desc: 'Get rescue robotics systems into the hands of real rescue teams. Not demos — real deployments. EOD units, USAR teams, nuclear maintenance crews. Measure lives protected.', tags: ['Deployment', 'Rescue', 'Impact', 'Defense'] },
-    { id: 4, year: 'Long Term', title: 'Build a human-centered robotics lab or company', desc: 'Create an institution focused on the intersection of teleoperation, shared autonomy, and rescue robotics — driven by the mission that robots protect people, not replace them.', tags: ['Lab', 'Company', 'Mission', 'Legacy'] }
-  ],
-
-  notes: []
-};
-
-// ============================================================
-//  DATA LAYER
-// ============================================================
-
-let state = {};
-
-function loadState() {
+function load() {
   try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      // Deep merge to handle new keys in defaults
-      state = deepMerge(defaultData, parsed);
+    const s = localStorage.getItem('ritme-v1');
+    if (s) steps = JSON.parse(s);
+    else steps = DEFAULTS.map(d => ({...d}));
+  } catch(e) { steps = DEFAULTS.map(d => ({...d})); }
+}
+
+function save() { localStorage.setItem('ritme-v1', JSON.stringify(steps)); }
+
+function setDate() {
+  const d = new Date();
+  const days = ['Ahad','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+  const months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  document.getElementById('dateLabel').textContent = `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]}`;
+}
+
+function render() {
+  const list = document.getElementById('chainList');
+  const done = steps.filter(s => s.done).length;
+  const total = steps.length;
+  const allDone = done === total && total > 0;
+  const activeIdx = steps.findIndex(s => !s.done);
+
+  document.getElementById('doneCount').textContent = done;
+  document.getElementById('totalCount').textContent = 'dari ' + total;
+  document.getElementById('progFill').style.width = total ? Math.round(done/total*100)+'%' : '0%';
+  document.getElementById('allDone').classList.toggle('show', allDone && !editMode);
+  document.getElementById('addStepRow').style.display = editMode ? 'flex' : 'none';
+
+  list.innerHTML = '';
+  if (editMode) list.classList.add('edit-mode');
+  else list.classList.remove('edit-mode');
+
+  steps.forEach((step, i) => {
+    const state = step.done ? 'done' : (i === activeIdx ? 'active' : 'pending');
+    const row = document.createElement('div');
+    row.className = 'step-row ' + state;
+    row.dataset.id = step.id;
+    row.dataset.idx = i;
+
+    const checkSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="#4A7FA5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+
+    if (editMode) {
+      row.innerHTML = `
+        <div class="drag-handle" data-idx="${i}">
+          <span></span><span></span><span></span>
+        </div>
+        <div class="step-node"></div>
+        <div class="step-body">
+          <div class="step-name-wrap">
+            <input class="name-input" type="text" value="${esc(step.name)}" data-id="${step.id}" placeholder="nama langkah...">
+            <input class="note-input" type="text" value="${esc(step.note)}" data-id="${step.id}-note" placeholder="catatan kecil...">
+          </div>
+        </div>
+        <button class="del-btn" onclick="deleteStep('${step.id}')">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      `;
+      // touch drag on handle
+      const handle = row.querySelector('.drag-handle');
+      handle.addEventListener('touchstart', onTouchStart, { passive: false });
     } else {
-      state = JSON.parse(JSON.stringify(defaultData));
+      const tapBtn = state === 'active'
+        ? `<button class="tap-btn" onclick="complete('${step.id}')">
+             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+             selesai
+           </button>` : '';
+      row.innerHTML = `
+        <div class="step-node" id="node-${step.id}" ${state==='active'?`onclick="complete('${step.id}')"`:''}>
+          ${checkSvg}
+        </div>
+        <div class="step-body">
+          <div class="step-name">${step.name}</div>
+          ${step.note ? `<div class="step-note">${step.note}</div>` : ''}
+          ${tapBtn}
+        </div>
+      `;
     }
-  } catch(e) {
-    state = JSON.parse(JSON.stringify(defaultData));
+
+    list.appendChild(row);
+  });
+}
+
+function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+
+function complete(id) {
+  const step = steps.find(s => s.id === id);
+  if (!step || step.done) return;
+  step.done = true;
+  save();
+  const node = document.getElementById('node-' + id);
+  if (node) node.classList.add('popped');
+  setTimeout(render, 320);
+}
+
+function resetAll() {
+  steps.forEach(s => s.done = false);
+  save();
+  render();
+}
+
+function toggleEdit() {
+  if (editMode) {
+    // save inline edits
+    document.querySelectorAll('.name-input').forEach(inp => {
+      const step = steps.find(s => s.id === inp.dataset.id);
+      if (step) step.name = inp.value.trim() || step.name;
+    });
+    document.querySelectorAll('.note-input').forEach(inp => {
+      const id = inp.dataset.id.replace('-note','');
+      const step = steps.find(s => s.id === id);
+      if (step) step.note = inp.value.trim();
+    });
+    steps = steps.filter(s => s.name);
+    save();
+  }
+  editMode = !editMode;
+  document.getElementById('editToggleBtn').classList.toggle('active-btn', editMode);
+  render();
+}
+
+function addStep() {
+  // save current edits first
+  document.querySelectorAll('.name-input').forEach(inp => {
+    const step = steps.find(s => s.id === inp.dataset.id);
+    if (step) step.name = inp.value.trim() || step.name;
+  });
+  document.querySelectorAll('.note-input').forEach(inp => {
+    const id = inp.dataset.id.replace('-note','');
+    const step = steps.find(s => s.id === id);
+    if (step) step.note = inp.value.trim();
+  });
+  steps.push({ id: uid(), name: '', note: '', done: false });
+  render();
+  // focus last name input
+  const inputs = document.querySelectorAll('.name-input');
+  if (inputs.length) inputs[inputs.length-1].focus();
+}
+
+function deleteStep(id) {
+  steps = steps.filter(s => s.id !== id);
+  render();
+}
+
+// ── Touch drag-to-reorder ──────────────────────────────────────────
+
+function onTouchStart(e) {
+  const handle = e.currentTarget;
+  dragIdx = parseInt(handle.dataset.idx);
+  touchStartY = e.touches[0].clientY;
+  touchCurY = touchStartY;
+
+  const row = handle.closest('.step-row');
+  dragGhostEl.textContent = steps[dragIdx].name || '—';
+  dragGhostEl.style.display = 'block';
+  positionGhost(touchStartY);
+
+  row.classList.add('dragging');
+
+  document.addEventListener('touchmove', onTouchMove, { passive: false });
+  document.addEventListener('touchend', onTouchEnd);
+}
+
+function onTouchMove(e) {
+  e.preventDefault();
+  touchCurY = e.touches[0].clientY;
+  positionGhost(touchCurY);
+
+  // find which row we're hovering over
+  const rows = document.querySelectorAll('.step-row');
+  let newOver = null;
+  let isAbove = false;
+
+  rows.forEach((row, i) => {
+    const rect = row.getBoundingClientRect();
+    const mid = rect.top + rect.height / 2;
+    if (touchCurY >= rect.top && touchCurY <= rect.bottom) {
+      newOver = i;
+      isAbove = touchCurY < mid;
+    }
+  });
+
+  rows.forEach(r => { r.classList.remove('drag-over-above', 'drag-over-below'); });
+
+  if (newOver !== null && newOver !== dragIdx) {
+    dragOverIdx = newOver;
+    rows[newOver].classList.add(isAbove ? 'drag-over-above' : 'drag-over-below');
+  } else {
+    dragOverIdx = null;
   }
 }
 
-function saveState() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  toast('Saved');
-  updateStats();
-}
+function onTouchEnd() {
+  document.removeEventListener('touchmove', onTouchMove);
+  document.removeEventListener('touchend', onTouchEnd);
 
-function deepMerge(defaults, saved) {
-  const result = JSON.parse(JSON.stringify(defaults));
-  for (const key in saved) {
-    if (saved[key] !== null && typeof saved[key] === 'object' && !Array.isArray(saved[key])) {
-      result[key] = deepMerge(defaults[key] || {}, saved[key]);
-    } else {
-      result[key] = saved[key];
-    }
-  }
-  return result;
-}
+  dragGhostEl.style.display = 'none';
 
-// ============================================================
-//  UI UTILITIES
-// ============================================================
+  const rows = document.querySelectorAll('.step-row');
+  rows.forEach(r => r.classList.remove('dragging', 'drag-over-above', 'drag-over-below'));
 
-function toast(msg, dur = 2000) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), dur);
-}
-
-function openModal(title, bodyHTML, footerHTML) {
-  document.getElementById('modal-title').textContent = title;
-  document.getElementById('modal-body').innerHTML = bodyHTML;
-  document.getElementById('modal-footer').innerHTML = footerHTML;
-  document.getElementById('modal-overlay').classList.add('open');
-}
-
-function closeModal() {
-  document.getElementById('modal-overlay').classList.remove('open');
-}
-
-function uid() {
-  return Date.now() + Math.floor(Math.random() * 1000);
-}
-
-function formatDate(ts) {
-  return new Date(ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-}
-
-function escapeHTML(str) {
-  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-// ============================================================
-//  BACKGROUND CANVAS
-// ============================================================
-
-function initCanvas() {
-  const canvas = document.getElementById('bg-canvas');
-  const ctx = canvas.getContext('2d');
-  let w, h, particles = [];
-
-  function resize() {
-    w = canvas.width = window.innerWidth;
-    h = canvas.height = window.innerHeight;
-  }
-
-  function initParticles() {
-    particles = [];
-    for (let i = 0; i < 60; i++) {
-      particles.push({
-        x: Math.random() * w,
-        y: Math.random() * h,
-        vx: (Math.random() - 0.5) * 0.3,
-        vy: (Math.random() - 0.5) * 0.3,
-        r: Math.random() * 1.5 + 0.5,
-        alpha: Math.random() * 0.4 + 0.1
-      });
-    }
-  }
-
-  function draw() {
-    ctx.clearRect(0, 0, w, h);
-
-    // Grid
-    ctx.strokeStyle = 'rgba(0,229,255,0.03)';
-    ctx.lineWidth = 1;
-    for (let x = 0; x < w; x += 60) {
-      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
-    }
-    for (let y = 0; y < h; y += 60) {
-      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
-    }
-
-    // Particles
-    particles.forEach(p => {
-      p.x += p.vx; p.y += p.vy;
-      if (p.x < 0) p.x = w;
-      if (p.x > w) p.x = 0;
-      if (p.y < 0) p.y = h;
-      if (p.y > h) p.y = 0;
-
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(0,229,255,${p.alpha})`;
-      ctx.fill();
+  if (dragOverIdx !== null && dragOverIdx !== dragIdx) {
+    // save current edits before reorder
+    document.querySelectorAll('.name-input').forEach(inp => {
+      const step = steps.find(s => s.id === inp.dataset.id);
+      if (step) step.name = inp.value.trim() || step.name;
+    });
+    document.querySelectorAll('.note-input').forEach(inp => {
+      const id = inp.dataset.id.replace('-note','');
+      const step = steps.find(s => s.id === id);
+      if (step) step.note = inp.value.trim();
     });
 
-    // Connect nearby particles
-    for (let i = 0; i < particles.length; i++) {
-      for (let j = i + 1; j < particles.length; j++) {
-        const dx = particles[i].x - particles[j].x;
-        const dy = particles[i].y - particles[j].y;
-        const dist = Math.sqrt(dx*dx + dy*dy);
-        if (dist < 120) {
-          ctx.beginPath();
-          ctx.moveTo(particles[i].x, particles[i].y);
-          ctx.lineTo(particles[j].x, particles[j].y);
-          ctx.strokeStyle = `rgba(0,229,255,${0.06 * (1 - dist/120)})`;
-          ctx.lineWidth = 0.5;
-          ctx.stroke();
-        }
-      }
-    }
-
-    requestAnimationFrame(draw);
+    const moved = steps.splice(dragIdx, 1)[0];
+    let insertAt = dragOverIdx > dragIdx ? dragOverIdx : dragOverIdx;
+    if (dragOverIdx > dragIdx) insertAt = dragOverIdx;
+    else insertAt = dragOverIdx;
+    steps.splice(insertAt, 0, moved);
+    save();
   }
 
-  resize();
-  initParticles();
-  draw();
-  window.addEventListener('resize', () => { resize(); initParticles(); });
+  dragIdx = null;
+  dragOverIdx = null;
+  render();
 }
 
-// ============================================================
-//  CLOCK
-// ============================================================
-
-function initClock() {
-  function tick() {
-    const now = new Date();
-    const s = now.toLocaleTimeString('en-US', { hour12: false });
-    const d = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
-    const el = document.getElementById('hero-datetime');
-    if (el) el.textContent = d + ' // ' + s;
-    const sb = document.getElementById('sb-time');
-    if (sb) sb.textContent = s;
-  }
-  tick();
-  setInterval(tick, 1000);
-}
-
-// ============================================================
-//  HERO SECTION
-// ============================================================
-
-function renderHero() {
-  const h = state.hero;
-  document.getElementById('hero-display-name').textContent = h.name;
-  document.getElementById('hero-display-role').textContent = h.role;
-  document.getElementById('hero-display-title').textContent = h.title;
-  document.getElementById('hero-mission-text').textContent = '"' + h.mission + '"';
-  document.getElementById('hero-focus-display').textContent = h.focus || 'Click to set current focus';
-}
-
-function openHeroEditor() {
-  const h = state.hero;
-  openModal('Edit Profile', `
-    <div class="form-group"><label>Your Name</label><input type="text" id="edit-name" value="${escapeHTML(h.name)}" /></div>
-    <div class="form-group"><label>Role / Specialty</label><input type="text" id="edit-role" value="${escapeHTML(h.role)}" /></div>
-    <div class="form-group"><label>Title Line</label><input type="text" id="edit-title" value="${escapeHTML(h.title)}" /></div>
-    <div class="form-group"><label>Mission Statement</label><textarea id="edit-mission">${escapeHTML(h.mission)}</textarea></div>
-    <div class="form-group"><label>Current Focus</label><input type="text" id="edit-focus" value="${escapeHTML(h.focus)}" /></div>
-  `, `<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary btn-sm" onclick="saveHero()">Save</button>`);
-}
-
-function saveHero() {
-  state.hero.name = document.getElementById('edit-name').value;
-  state.hero.role = document.getElementById('edit-role').value;
-  state.hero.title = document.getElementById('edit-title').value;
-  state.hero.mission = document.getElementById('edit-mission').value;
-  state.hero.focus = document.getElementById('edit-focus').value;
-  saveState();
-  renderHero();
-  closeModal();
-}
-
-function editHeroFocus() {
-  const val = prompt('Current Focus:', state.hero.focus);
-  if (val !== null) {
-    state.hero.focus = val;
-    saveState();
-    renderHero();
-  }
-}
-
-// ============================================================
-//  MISSION CARDS
-// ============================================================
-
-function renderMissionCards() {
-  const container = document.getElementById('mission-cards-container');
-  container.innerHTML = state.missionCards.map(c => `
-    <div class="card mission-card ${c.accent === 'orange' ? 'orange' : ''}">
-      <div class="mission-icon">${escapeHTML(c.icon)}</div>
-      <h3>${escapeHTML(c.title)}</h3>
-      <p>${escapeHTML(c.body)}</p>
-      <div class="mission-tagline">${escapeHTML(c.tagline)}</div>
-      <div class="project-actions" style="margin-top:12px">
-        <button class="btn btn-ghost btn-sm" onclick="editMissionCard(${c.id})">✎ Edit</button>
-      </div>
-    </div>
-  `).join('');
-}
-
-function editMissionCard(id) {
-  const c = state.missionCards.find(x => x.id === id);
-  if (!c) return;
-  openModal('Edit Mission Card', `
-    <div class="form-group"><label>Icon (emoji)</label><input type="text" id="mc-icon" value="${escapeHTML(c.icon)}" /></div>
-    <div class="form-group"><label>Title</label><input type="text" id="mc-title" value="${escapeHTML(c.title)}" /></div>
-    <div class="form-group"><label>Body</label><textarea id="mc-body" style="min-height:120px">${escapeHTML(c.body)}</textarea></div>
-    <div class="form-group"><label>Tagline</label><input type="text" id="mc-tagline" value="${escapeHTML(c.tagline)}" /></div>
-    <div class="form-group"><label>Accent Color</label>
-      <select id="mc-accent"><option value="cyan" ${c.accent==='cyan'?'selected':''}>Cyan</option><option value="orange" ${c.accent==='orange'?'selected':''}>Orange</option></select>
-    </div>
-  `, `<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary btn-sm" onclick="saveMissionCard(${id})">Save</button>`);
-}
-
-function saveMissionCard(id) {
-  const c = state.missionCards.find(x => x.id === id);
-  if (!c) return;
-  c.icon = document.getElementById('mc-icon').value;
-  c.title = document.getElementById('mc-title').value;
-  c.body = document.getElementById('mc-body').value;
-  c.tagline = document.getElementById('mc-tagline').value;
-  c.accent = document.getElementById('mc-accent').value;
-  saveState();
-  renderMissionCards();
-  closeModal();
-}
-
-// ============================================================
-//  SKILL MAP
-// ============================================================
-
-function renderSkillTree() {
-  const container = document.getElementById('skill-tree-container');
-  const statusLabels = { done: 'Done', inprogress: 'In Progress', todo: 'Todo' };
-  container.innerHTML = state.skillDomains.map(d => `
-    <div class="skill-domain" id="sd-${d.id}">
-      <div class="skill-domain-header" onclick="toggleDomain(${d.id})">
-        <div class="skill-domain-name">
-          <span class="badge ${d.color === 'orange' ? 'badge-orange' : 'badge-cyan'}" style="font-size:8px">${d.skills.filter(s=>s.status==='done').length}/${d.skills.length}</span>
-          ${escapeHTML(d.name)}
-        </div>
-        <div style="display:flex;gap:8px;align-items:center">
-          <span class="skill-chevron">▾</span>
-        </div>
-      </div>
-      <div class="skill-domain-body">
-        ${d.skills.map((s, si) => `
-          <div class="skill-item">
-            <span>${escapeHTML(s.name)}</span>
-            <div class="skill-status" onclick="cycleSkillStatus(${d.id},${si})" style="cursor:pointer" title="Click to cycle status">
-              <div class="status-dot ${s.status}"></div>
-              <span>${statusLabels[s.status]}</span>
-            </div>
-          </div>
-        `).join('')}
-        <div style="margin-top:12px;display:flex;gap:6px">
-          <button class="btn btn-ghost btn-sm" onclick="editSkillDomain(${d.id})">✎ Edit</button>
-          <button class="btn btn-ghost btn-sm" onclick="addSkillToDoamin(${d.id})">+ Skill</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteSkillDomain(${d.id})">✕</button>
-        </div>
-      </div>
-    </div>
-  `).join('');
-}
-
-function toggleDomain(id) {
-  document.getElementById('sd-' + id).classList.toggle('open');
-}
-
-function cycleSkillStatus(domainId, skillIndex) {
-  const d = state.skillDomains.find(x => x.id === domainId);
-  if (!d) return;
-  const cycle = ['todo', 'inprogress', 'done'];
-  const cur = d.skills[skillIndex].status;
-  d.skills[skillIndex].status = cycle[(cycle.indexOf(cur) + 1) % cycle.length];
-  saveState();
-  renderSkillTree();
-}
-
-function editSkillDomain(id) {
-  const d = state.skillDomains.find(x => x.id === id);
-  if (!d) return;
-  openModal('Edit Domain: ' + d.name, `
-    <div class="form-group"><label>Domain Name</label><input type="text" id="sd-name" value="${escapeHTML(d.name)}" /></div>
-    <div class="form-group"><label>Accent</label>
-      <select id="sd-color"><option value="cyan" ${d.color==='cyan'?'selected':''}>Cyan</option><option value="orange" ${d.color==='orange'?'selected':''}>Orange</option></select>
-    </div>
-    <div class="form-group"><label>Skills (one per line, format: "Name | status" where status = done/inprogress/todo)</label>
-      <textarea id="sd-skills" style="min-height:160px">${d.skills.map(s => s.name + ' | ' + s.status).join('\n')}</textarea>
-    </div>
-  `, `<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary btn-sm" onclick="saveSkillDomain(${id})">Save</button>`);
-}
-
-function saveSkillDomain(id) {
-  const d = state.skillDomains.find(x => x.id === id);
-  if (!d) return;
-  d.name = document.getElementById('sd-name').value;
-  d.color = document.getElementById('sd-color').value;
-  d.skills = document.getElementById('sd-skills').value.split('\n').filter(l => l.trim()).map(l => {
-    const parts = l.split('|').map(p => p.trim());
-    return { name: parts[0], status: ['done','inprogress','todo'].includes(parts[1]) ? parts[1] : 'todo' };
-  });
-  saveState();
-  renderSkillTree();
-  closeModal();
-}
-
-function addSkillToDoamin(domainId) {
-  const name = prompt('Skill name:');
-  if (!name) return;
-  const d = state.skillDomains.find(x => x.id === domainId);
-  if (!d) return;
-  d.skills.push({ name: name.trim(), status: 'todo' });
-  saveState();
-  renderSkillTree();
-  const el = document.getElementById('sd-' + domainId);
-  if (el) el.classList.add('open');
-}
-
-function deleteSkillDomain(id) {
-  if (!confirm('Delete this domain?')) return;
-  state.skillDomains = state.skillDomains.filter(x => x.id !== id);
-  saveState();
-  renderSkillTree();
-}
-
-function openSkillEditor() {
-  openModal('Add New Domain', `
-    <div class="form-group"><label>Domain Name</label><input type="text" id="new-sd-name" placeholder="e.g. Kinematics" /></div>
-    <div class="form-group"><label>Accent</label>
-      <select id="new-sd-color"><option value="cyan">Cyan</option><option value="orange">Orange</option></select>
-    </div>
-    <div class="form-group"><label>Skills (one per line)</label>
-      <textarea id="new-sd-skills" placeholder="Skill 1&#10;Skill 2&#10;Skill 3"></textarea>
-    </div>
-  `, `<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary btn-sm" onclick="addSkillDomain()">Add Domain</button>`);
-}
-
-function addSkillDomain() {
-  const name = document.getElementById('new-sd-name').value.trim();
-  if (!name) return;
-  const color = document.getElementById('new-sd-color').value;
-  const skills = document.getElementById('new-sd-skills').value.split('\n')
-    .filter(l => l.trim()).map(l => ({ name: l.trim(), status: 'todo' }));
-  state.skillDomains.push({ id: uid(), name, color, skills });
-  saveState();
-  renderSkillTree();
-  closeModal();
-}
-
-// ============================================================
-//  ROADMAP
-// ============================================================
-
-function renderRoadmap() {
-  const container = document.getElementById('roadmap-container');
-  container.innerHTML = state.phases.map(p => `
-    <div class="phase-card ${p.active ? 'active' : ''}" id="ph-${p.id}">
-      <div class="phase-header" onclick="togglePhase(${p.id})">
-        <div class="phase-meta">
-          <div class="phase-tag">${escapeHTML(p.tag)} ${p.active ? '<span class="badge badge-cyan" style="font-size:8px">ACTIVE</span>' : ''}</div>
-          <div class="phase-title">${escapeHTML(p.title)}</div>
-        </div>
-        <div class="phase-progress-mini">
-          <div class="progress-bar" style="width:80px"><div class="progress-fill" style="width:${p.progress}%"></div></div>
-          <span class="pct">${p.progress}%</span>
-          <span style="color:var(--text-muted);font-size:12px">▾</span>
-        </div>
-      </div>
-      <div class="phase-body">
-        <div class="phase-section-label">Objectives</div>
-        <p style="font-size:11px;color:var(--text-dim);line-height:1.6">${escapeHTML(p.objectives)}</p>
-
-        <div class="phase-section-label">Technologies</div>
-        <div class="tech-tags">${p.techs.map(t => `<span class="tech-tag">${escapeHTML(t)}</span>`).join('')}</div>
-
-        <div class="phase-section-label">Milestones</div>
-        <ul class="milestone-list">
-          ${p.milestones.map((m, mi) => `
-            <li class="milestone-item ${m.done ? 'done' : ''}" onclick="toggleMilestone(${p.id},${mi})">
-              <div class="milestone-check">${m.done ? '✓' : ''}</div>
-              <span>${escapeHTML(m.text)}</span>
-            </li>
-          `).join('')}
-        </ul>
-
-        <div style="margin-top:12px;display:flex;gap:6px">
-          <button class="btn btn-ghost btn-sm" onclick="editPhase(${p.id})">✎ Edit Phase</button>
-          <button class="btn btn-ghost btn-sm" onclick="addMilestone(${p.id})">+ Milestone</button>
-          <button class="btn btn-danger btn-sm" onclick="deletePhase(${p.id})">✕ Delete</button>
-        </div>
-      </div>
-    </div>
-  `).join('');
-  updateStats();
-}
-
-function togglePhase(id) {
-  const el = document.getElementById('ph-' + id);
-  if (el) el.classList.toggle('open');
-}
-
-function toggleMilestone(phaseId, mi) {
-  const p = state.phases.find(x => x.id === phaseId);
-  if (!p) return;
-  p.milestones[mi].done = !p.milestones[mi].done;
-  // Recalc progress
-  p.progress = Math.round(p.milestones.filter(m => m.done).length / p.milestones.length * 100);
-  saveState();
-  renderRoadmap();
-  const el = document.getElementById('ph-' + phaseId);
-  if (el) el.classList.add('open');
-}
-
-function addMilestone(phaseId) {
-  const text = prompt('Milestone description:');
-  if (!text) return;
-  const p = state.phases.find(x => x.id === phaseId);
-  if (!p) return;
-  p.milestones.push({ text: text.trim(), done: false });
-  saveState();
-  renderRoadmap();
-  const el = document.getElementById('ph-' + phaseId);
-  if (el) el.classList.add('open');
-}
-
-function editPhase(id) {
-  const p = state.phases.find(x => x.id === id);
-  if (!p) return;
-  openModal('Edit Phase', `
-    <div class="form-row">
-      <div class="form-group"><label>Phase Tag</label><input type="text" id="ep-tag" value="${escapeHTML(p.tag)}" /></div>
-      <div class="form-group"><label>Title</label><input type="text" id="ep-title" value="${escapeHTML(p.title)}" /></div>
-    </div>
-    <div class="form-group"><label>Objectives</label><textarea id="ep-obj">${escapeHTML(p.objectives)}</textarea></div>
-    <div class="form-group"><label>Technologies (comma separated)</label><input type="text" id="ep-techs" value="${escapeHTML(p.techs.join(', '))}" /></div>
-    <div class="form-group"><label>Progress %</label><input type="number" id="ep-progress" min="0" max="100" value="${p.progress}" /></div>
-    <div class="form-group">
-      <label>Mark as Active Phase</label>
-      <select id="ep-active"><option value="true" ${p.active?'selected':''}>Yes</option><option value="false" ${!p.active?'selected':''}>No</option></select>
-    </div>
-  `, `<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary btn-sm" onclick="savePhase(${id})">Save</button>`);
-}
-
-function savePhase(id) {
-  const p = state.phases.find(x => x.id === id);
-  if (!p) return;
-  p.tag = document.getElementById('ep-tag').value;
-  p.title = document.getElementById('ep-title').value;
-  p.objectives = document.getElementById('ep-obj').value;
-  p.techs = document.getElementById('ep-techs').value.split(',').map(t => t.trim()).filter(Boolean);
-  p.progress = parseInt(document.getElementById('ep-progress').value) || 0;
-  p.active = document.getElementById('ep-active').value === 'true';
-  saveState();
-  renderRoadmap();
-  closeModal();
-}
-
-function deletePhase(id) {
-  if (!confirm('Delete this phase?')) return;
-  state.phases = state.phases.filter(x => x.id !== id);
-  saveState();
-  renderRoadmap();
-}
-
-function openPhaseEditor() {
-  openModal('Add New Phase', `
-    <div class="form-row">
-      <div class="form-group"><label>Phase Tag</label><input type="text" id="np-tag" placeholder="PHASE N" /></div>
-      <div class="form-group"><label>Title</label><input type="text" id="np-title" placeholder="Phase title" /></div>
-    </div>
-    <div class="form-group"><label>Objectives</label><textarea id="np-obj" placeholder="What does this phase achieve?"></textarea></div>
-    <div class="form-group"><label>Technologies (comma separated)</label><input type="text" id="np-techs" placeholder="ROS2, Python, ..." /></div>
-    <div class="form-group"><label>Milestones (one per line)</label><textarea id="np-ms" placeholder="Build chassis&#10;Add motor control&#10;..."></textarea></div>
-  `, `<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary btn-sm" onclick="addPhase()">Add Phase</button>`);
-}
-
-function addPhase() {
-  const tag = document.getElementById('np-tag').value.trim();
-  const title = document.getElementById('np-title').value.trim();
-  if (!title) return;
-  state.phases.push({
-    id: uid(),
-    tag: tag || 'PHASE',
-    title,
-    progress: 0,
-    active: false,
-    objectives: document.getElementById('np-obj').value,
-    techs: document.getElementById('np-techs').value.split(',').map(t => t.trim()).filter(Boolean),
-    milestones: document.getElementById('np-ms').value.split('\n').filter(l => l.trim()).map(l => ({ text: l.trim(), done: false }))
-  });
-  saveState();
-  renderRoadmap();
-  closeModal();
-}
-
-// ============================================================
-//  PROJECTS
-// ============================================================
-
-function renderProjects() {
-  const container = document.getElementById('project-container');
-  container.innerHTML = state.projects.map(p => {
-    const dots = [1,2,3,4,5].map(i => `<div class="diff-dot ${i <= p.difficulty ? 'filled' : ''}"></div>`).join('');
-    return `
-      <div class="card project-card ${p.type}" id="proj-${p.id}" onclick="toggleProject(${p.id})">
-        <div class="project-card-top">
-          <div class="project-title">${escapeHTML(p.title)}</div>
-          <div class="project-difficulty">${dots}</div>
-        </div>
-        <div class="project-mission">${escapeHTML(p.mission)}</div>
-        <div class="project-tech-mini">${p.techs.map(t => `<span class="project-tech-tag">${escapeHTML(t)}</span>`).join('')}</div>
-        <div class="project-impact">⬡ ${escapeHTML(p.impact)}</div>
-        <div class="project-expand-area">
-          <div class="form-group" onclick="event.stopPropagation()">
-            <label>Notes</label>
-            <textarea id="pnotes-${p.id}" placeholder="Add notes, links, ideas..." onclick="event.stopPropagation()">${escapeHTML(p.notes)}</textarea>
-          </div>
-          <div class="project-actions" onclick="event.stopPropagation()">
-            <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();editProject(${p.id})">✎ Edit</button>
-            <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();saveProjectNotes(${p.id})">Save Notes</button>
-            <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteProject(${p.id})">✕ Delete</button>
-          </div>
-        </div>
-      </div>
-    `;
-  }).join('');
-  if (!state.projects.length) {
-    container.innerHTML = '<div class="empty-state"><div class="empty-icon">◇</div><p>No projects yet. Add your first project.</p></div>';
-  }
-  updateStats();
-}
-
-function toggleProject(id) {
-  document.getElementById('proj-' + id).classList.toggle('expanded');
-}
-
-function saveProjectNotes(id) {
-  const p = state.projects.find(x => x.id === id);
-  if (!p) return;
-  p.notes = document.getElementById('pnotes-' + id).value;
-  saveState();
-}
-
-function editProject(id) {
-  const p = state.projects.find(x => x.id === id);
-  if (!p) return;
-  openModal('Edit Project', `
-    <div class="form-group"><label>Title</label><input type="text" id="ep2-title" value="${escapeHTML(p.title)}" /></div>
-    <div class="form-row">
-      <div class="form-group"><label>Type</label>
-        <select id="ep2-type"><option value="hazardous" ${p.type==='hazardous'?'selected':''}>Hazardous</option><option value="rescue" ${p.type==='rescue'?'selected':''}>Rescue</option></select>
-      </div>
-      <div class="form-group"><label>Difficulty (1–5)</label><input type="number" id="ep2-diff" min="1" max="5" value="${p.difficulty}" /></div>
-    </div>
-    <div class="form-group"><label>Mission</label><textarea id="ep2-mission">${escapeHTML(p.mission)}</textarea></div>
-    <div class="form-group"><label>Technologies (comma separated)</label><input type="text" id="ep2-techs" value="${escapeHTML(p.techs.join(', '))}" /></div>
-    <div class="form-group"><label>Ethical Impact</label><textarea id="ep2-impact" style="min-height:60px">${escapeHTML(p.impact)}</textarea></div>
-  `, `<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary btn-sm" onclick="saveProject(${id})">Save</button>`);
-}
-
-function saveProject(id) {
-  const p = state.projects.find(x => x.id === id);
-  if (!p) return;
-  p.title = document.getElementById('ep2-title').value;
-  p.type = document.getElementById('ep2-type').value;
-  p.difficulty = parseInt(document.getElementById('ep2-diff').value) || 3;
-  p.mission = document.getElementById('ep2-mission').value;
-  p.techs = document.getElementById('ep2-techs').value.split(',').map(t => t.trim()).filter(Boolean);
-  p.impact = document.getElementById('ep2-impact').value;
-  saveState();
-  renderProjects();
-  closeModal();
-}
-
-function deleteProject(id) {
-  if (!confirm('Delete this project?')) return;
-  state.projects = state.projects.filter(x => x.id !== id);
-  saveState();
-  renderProjects();
-}
-
-function openProjectEditor() {
-  openModal('New Project', `
-    <div class="form-group"><label>Title</label><input type="text" id="np2-title" placeholder="Project name" /></div>
-    <div class="form-row">
-      <div class="form-group"><label>Type</label>
-        <select id="np2-type"><option value="hazardous">Hazardous</option><option value="rescue">Rescue</option></select>
-      </div>
-      <div class="form-group"><label>Difficulty (1–5)</label><input type="number" id="np2-diff" min="1" max="5" value="3" /></div>
-    </div>
-    <div class="form-group"><label>Mission</label><textarea id="np2-mission" placeholder="What problem does this solve?"></textarea></div>
-    <div class="form-group"><label>Technologies (comma separated)</label><input type="text" id="np2-techs" placeholder="ROS2, WebRTC, Haptics, ..." /></div>
-    <div class="form-group"><label>Ethical Impact</label><textarea id="np2-impact" placeholder="How does this protect or help humans?" style="min-height:60px"></textarea></div>
-  `, `<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary btn-sm" onclick="addProject()">Add Project</button>`);
-}
-
-function addProject() {
-  const title = document.getElementById('np2-title').value.trim();
-  if (!title) return;
-  state.projects.push({
-    id: uid(),
-    title,
-    type: document.getElementById('np2-type').value,
-    difficulty: parseInt(document.getElementById('np2-diff').value) || 3,
-    mission: document.getElementById('np2-mission').value,
-    techs: document.getElementById('np2-techs').value.split(',').map(t => t.trim()).filter(Boolean),
-    impact: document.getElementById('np2-impact').value,
-    notes: ''
-  });
-  saveState();
-  renderProjects();
-  closeModal();
-}
-
-// ============================================================
-//  KNOWLEDGE TRACKER
-// ============================================================
-
-const stageLabels = { exploration: 'Exploration', learning: 'Learning', intermediate: 'Intermediate', advanced: 'Advanced', mastery: 'Mastery' };
-
-function renderKnowledge() {
-  const container = document.getElementById('knowledge-container');
-  container.innerHTML = state.knowledge.map(k => `
-    <div class="card knowledge-card" id="kn-${k.id}">
-      <div class="knowledge-card-top" onclick="toggleKnowledge(${k.id})" style="cursor:pointer">
-        <div>
-          <div class="knowledge-name">${escapeHTML(k.name)}</div>
-          <div class="knowledge-stage">${stageLabels[k.stage] || k.stage}</div>
-        </div>
-        <div class="knowledge-pct">${k.pct}%</div>
-      </div>
-      <div class="progress-bar"><div class="progress-fill" style="width:${k.pct}%"></div></div>
-      <div class="knowledge-body">
-        <div class="stage-selector">
-          ${Object.keys(stageLabels).map(s => `<button class="stage-btn ${k.stage===s?'active':''}" onclick="setKnowledgeStage(${k.id},'${s}')">${stageLabels[s]}</button>`).join('')}
-        </div>
-        <div class="form-group mt-12">
-          <label>Progress %</label>
-          <input type="number" id="kpct-${k.id}" min="0" max="100" value="${k.pct}" />
-        </div>
-        <div class="form-group">
-          <label>Notes</label>
-          <textarea id="knotes-${k.id}" placeholder="Key learnings, gaps, insights...">${escapeHTML(k.notes)}</textarea>
-        </div>
-        <div class="form-group">
-          <label>Resource Links (one per line)</label>
-          <textarea id="kres-${k.id}" placeholder="https://..." style="min-height:60px">${escapeHTML((k.resources||[]).join('\n'))}</textarea>
-        </div>
-        <div style="display:flex;gap:6px;margin-top:8px">
-          <button class="btn btn-primary btn-sm" onclick="saveKnowledge(${k.id})">Save</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteKnowledge(${k.id})">Delete</button>
-        </div>
-      </div>
-    </div>
-  `).join('');
-}
-
-function toggleKnowledge(id) {
-  document.getElementById('kn-' + id).classList.toggle('expanded');
-}
-
-function setKnowledgeStage(id, stage) {
-  const k = state.knowledge.find(x => x.id === id);
-  if (!k) return;
-  k.stage = stage;
-  saveState();
-  renderKnowledge();
-  const el = document.getElementById('kn-' + id);
-  if (el) el.classList.add('expanded');
-}
-
-function saveKnowledge(id) {
-  const k = state.knowledge.find(x => x.id === id);
-  if (!k) return;
-  k.pct = Math.min(100, Math.max(0, parseInt(document.getElementById('kpct-' + id).value) || 0));
-  k.notes = document.getElementById('knotes-' + id).value;
-  k.resources = document.getElementById('kres-' + id).value.split('\n').filter(l => l.trim());
-  saveState();
-  renderKnowledge();
-  const el = document.getElementById('kn-' + id);
-  if (el) el.classList.add('expanded');
-}
-
-function deleteKnowledge(id) {
-  if (!confirm('Delete this topic?')) return;
-  state.knowledge = state.knowledge.filter(x => x.id !== id);
-  saveState();
-  renderKnowledge();
-}
-
-function openKnowledgeEditor() {
-  openModal('Add Knowledge Topic', `
-    <div class="form-group"><label>Topic Name</label><input type="text" id="nk-name" placeholder="e.g. Bilateral Control" /></div>
-    <div class="form-row">
-      <div class="form-group"><label>Stage</label>
-        <select id="nk-stage">${Object.keys(stageLabels).map(s=>`<option value="${s}">${stageLabels[s]}</option>`).join('')}</select>
-      </div>
-      <div class="form-group"><label>Progress %</label><input type="number" id="nk-pct" min="0" max="100" value="0" /></div>
-    </div>
-  `, `<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary btn-sm" onclick="addKnowledge()">Add Topic</button>`);
-}
-
-function addKnowledge() {
-  const name = document.getElementById('nk-name').value.trim();
-  if (!name) return;
-  state.knowledge.push({
-    id: uid(),
-    name,
-    pct: parseInt(document.getElementById('nk-pct').value) || 0,
-    stage: document.getElementById('nk-stage').value,
-    notes: '',
-    resources: []
-  });
-  saveState();
-  renderKnowledge();
-  closeModal();
-}
-
-// ============================================================
-//  RESEARCH DIRECTIONS
-// ============================================================
-
-function renderResearch() {
-  const container = document.getElementById('research-container');
-  container.innerHTML = state.research.map(r => `
-    <div class="card research-card" id="res-${r.id}">
-      <div class="research-card-top" onclick="toggleResearch(${r.id})" style="cursor:pointer">
-        <div>
-          <div class="research-title">${escapeHTML(r.name)}</div>
-          <p style="font-size:11px;color:var(--text-dim);margin-top:4px;line-height:1.5">${escapeHTML(r.explanation)}</p>
-        </div>
-        <div class="interest-score">
-          <div class="interest-pips">
-            ${[1,2,3,4,5].map(i => `<div class="pip ${i<=r.interest?'filled':''}" onclick="event.stopPropagation();setInterest(${r.id},${i})"></div>`).join('')}
-          </div>
-        </div>
-      </div>
-      <div class="research-body">
-        <div class="research-meta-row">
-          <div class="research-meta-item"><label>Why It Matters</label><p>${escapeHTML(r.why)}</p></div>
-          <div class="research-meta-item"><label>Future Applications</label><p>${escapeHTML(r.future)}</p></div>
-        </div>
-        <div class="form-group mt-12">
-          <label>Personal Notes</label>
-          <textarea id="rnotes-${r.id}">${escapeHTML(r.notes)}</textarea>
-        </div>
-        <div style="display:flex;gap:6px;margin-top:8px">
-          <button class="btn btn-primary btn-sm" onclick="saveResearch(${r.id})">Save Notes</button>
-          <button class="btn btn-ghost btn-sm" onclick="editResearch(${r.id})">✎ Edit</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteResearch(${r.id})">✕ Delete</button>
-        </div>
-      </div>
-    </div>
-  `).join('');
-}
-
-function toggleResearch(id) {
-  document.getElementById('res-' + id).classList.toggle('expanded');
-}
-
-function setInterest(id, val) {
-  const r = state.research.find(x => x.id === id);
-  if (!r) return;
-  r.interest = val;
-  saveState();
-  renderResearch();
-}
-
-function saveResearch(id) {
-  const r = state.research.find(x => x.id === id);
-  if (!r) return;
-  r.notes = document.getElementById('rnotes-' + id).value;
-  saveState();
-  toast('Research notes saved');
-}
-
-function editResearch(id) {
-  const r = state.research.find(x => x.id === id);
-  if (!r) return;
-  openModal('Edit Research Direction', `
-    <div class="form-group"><label>Name</label><input type="text" id="er-name" value="${escapeHTML(r.name)}" /></div>
-    <div class="form-group"><label>Short Explanation</label><textarea id="er-exp">${escapeHTML(r.explanation)}</textarea></div>
-    <div class="form-group"><label>Why It Matters</label><textarea id="er-why">${escapeHTML(r.why)}</textarea></div>
-    <div class="form-group"><label>Future Applications</label><textarea id="er-future">${escapeHTML(r.future)}</textarea></div>
-  `, `<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary btn-sm" onclick="saveResearchEdit(${id})">Save</button>`);
-}
-
-function saveResearchEdit(id) {
-  const r = state.research.find(x => x.id === id);
-  if (!r) return;
-  r.name = document.getElementById('er-name').value;
-  r.explanation = document.getElementById('er-exp').value;
-  r.why = document.getElementById('er-why').value;
-  r.future = document.getElementById('er-future').value;
-  saveState();
-  renderResearch();
-  closeModal();
-}
-
-function deleteResearch(id) {
-  if (!confirm('Delete this research direction?')) return;
-  state.research = state.research.filter(x => x.id !== id);
-  saveState();
-  renderResearch();
-}
-
-function openResearchEditor() {
-  openModal('Add Research Direction', `
-    <div class="form-group"><label>Name</label><input type="text" id="nr-name" placeholder="e.g. Sim-to-Real Transfer" /></div>
-    <div class="form-group"><label>Short Explanation</label><textarea id="nr-exp" placeholder="What is this?"></textarea></div>
-    <div class="form-group"><label>Why It Matters</label><textarea id="nr-why" placeholder="Why is this important to you?"></textarea></div>
-    <div class="form-group"><label>Future Applications</label><textarea id="nr-future" placeholder="Where does this lead?"></textarea></div>
-  `, `<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary btn-sm" onclick="addResearch()">Add</button>`);
-}
-
-function addResearch() {
-  const name = document.getElementById('nr-name').value.trim();
-  if (!name) return;
-  state.research.push({
-    id: uid(),
-    name,
-    explanation: document.getElementById('nr-exp').value,
-    why: document.getElementById('nr-why').value,
-    future: document.getElementById('nr-future').value,
-    interest: 3,
-    notes: ''
-  });
-  saveState();
-  renderResearch();
-  closeModal();
-}
-
-// ============================================================
-//  IDEAS VAULT
-// ============================================================
-
-function renderIdeas() {
-  const container = document.getElementById('ideas-container');
-  if (!state.ideas.length) {
-    container.innerHTML = '<div class="empty-state"><div class="empty-icon">◈</div><p>No ideas logged yet. Capture your first idea above.</p></div>';
-    return;
-  }
-  container.innerHTML = [...state.ideas].reverse().map(idea => {
-    const stars = [1,2,3,4,5].map(i => `<span class="importance-star ${i<=idea.importance?'filled':''}" onclick="event.stopPropagation();setIdeaImportance(${idea.id},${i})">★</span>`).join('');
-    return `
-      <div class="card idea-card" id="idea-${idea.id}" onclick="toggleIdea(${idea.id})">
-        <div class="idea-card-header">
-          <div>
-            <div class="idea-title-text">${escapeHTML(idea.title)}</div>
-            <div class="idea-meta">
-              <span class="badge badge-dim">${escapeHTML(idea.category)}</span>
-              <div class="idea-importance">${stars}</div>
-              ${(idea.tags||[]).map(t => `<span class="idea-tag">${escapeHTML(t)}</span>`).join('')}
-              <span class="idea-time">${formatDate(idea.timestamp)}</span>
-            </div>
-          </div>
-          <div style="display:flex;gap:6px" onclick="event.stopPropagation()">
-            <button class="btn btn-ghost btn-sm" onclick="editIdea(${idea.id})">✎</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteIdea(${idea.id})">✕</button>
-          </div>
-        </div>
-        <div class="idea-expand">${escapeHTML(idea.details)}</div>
-      </div>
-    `;
-  }).join('');
-  updateStats();
-}
-
-function toggleIdea(id) {
-  document.getElementById('idea-' + id).classList.toggle('expanded');
-}
-
-function addIdea() {
-  const title = document.getElementById('idea-title-input').value.trim();
-  if (!title) { toast('Please enter a title'); return; }
-  const tags = document.getElementById('idea-tags-input').value.split(',').map(t => t.trim()).filter(Boolean);
-  state.ideas.push({
-    id: uid(),
-    title,
-    category: document.getElementById('idea-cat-input').value,
-    importance: parseInt(document.getElementById('idea-importance-input').value) || 3,
-    tags,
-    details: document.getElementById('idea-detail-input').value,
-    timestamp: Date.now()
-  });
-  document.getElementById('idea-title-input').value = '';
-  document.getElementById('idea-tags-input').value = '';
-  document.getElementById('idea-detail-input').value = '';
-  document.getElementById('idea-importance-input').value = '3';
-  saveState();
-  renderIdeas();
-  toast('⚡ Idea logged!');
-}
-
-function setIdeaImportance(id, val) {
-  const idea = state.ideas.find(x => x.id === id);
-  if (!idea) return;
-  idea.importance = val;
-  saveState();
-  renderIdeas();
-}
-
-function editIdea(id) {
-  const idea = state.ideas.find(x => x.id === id);
-  if (!idea) return;
-  openModal('Edit Idea', `
-    <div class="form-group"><label>Title</label><input type="text" id="ei-title" value="${escapeHTML(idea.title)}" /></div>
-    <div class="form-row">
-      <div class="form-group"><label>Category</label>
-        <select id="ei-cat">
-          ${['Teleoperation','Rescue Robotics','HRI','Shared Autonomy','Hardware','Software','Research','System Design','Other'].map(c=>`<option value="${c}" ${idea.category===c?'selected':''}>${c}</option>`).join('')}
-        </select>
-      </div>
-      <div class="form-group"><label>Importance (1–5)</label><input type="number" id="ei-imp" min="1" max="5" value="${idea.importance}" /></div>
-    </div>
-    <div class="form-group"><label>Tags (comma separated)</label><input type="text" id="ei-tags" value="${escapeHTML((idea.tags||[]).join(', '))}" /></div>
-    <div class="form-group"><label>Details</label><textarea id="ei-detail">${escapeHTML(idea.details)}</textarea></div>
-  `, `<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary btn-sm" onclick="saveIdeaEdit(${id})">Save</button>`);
-}
-
-function saveIdeaEdit(id) {
-  const idea = state.ideas.find(x => x.id === id);
-  if (!idea) return;
-  idea.title = document.getElementById('ei-title').value;
-  idea.category = document.getElementById('ei-cat').value;
-  idea.importance = parseInt(document.getElementById('ei-imp').value) || 3;
-  idea.tags = document.getElementById('ei-tags').value.split(',').map(t => t.trim()).filter(Boolean);
-  idea.details = document.getElementById('ei-detail').value;
-  saveState();
-  renderIdeas();
-  closeModal();
-}
-
-function deleteIdea(id) {
-  if (!confirm('Delete this idea?')) return;
-  state.ideas = state.ideas.filter(x => x.id !== id);
-  saveState();
-  renderIdeas();
-}
-
-// ============================================================
-//  ETHICAL COMPASS
-// ============================================================
-
-function renderPrinciples() {
-  const container = document.getElementById('principles-container');
-  container.innerHTML = state.principles.map((p, i) => `
-    <div class="card principle-card">
-      <div class="principle-number">${String(i+1).padStart(2,'0')}</div>
-      <div class="principle-text">
-        <h4>${escapeHTML(p.title)}</h4>
-        <p>${escapeHTML(p.body)}</p>
-      </div>
-      <div style="display:flex;gap:6px;margin-top:8px;flex-direction:column">
-        <button class="btn btn-ghost btn-sm" onclick="editPrinciple(${p.id})" style="align-self:flex-start">✎ Edit</button>
-      </div>
-    </div>
-  `).join('') + `
-    <div style="margin-top:16px;display:flex;gap:8px">
-      <button class="btn btn-ghost btn-sm" onclick="addPrinciple()">+ Add Principle</button>
-    </div>
-  `;
-}
-
-function editPrinciple(id) {
-  const p = state.principles.find(x => x.id === id);
-  if (!p) return;
-  openModal('Edit Principle', `
-    <div class="form-group"><label>Title</label><input type="text" id="epr-title" value="${escapeHTML(p.title)}" /></div>
-    <div class="form-group"><label>Body</label><textarea id="epr-body">${escapeHTML(p.body)}</textarea></div>
-  `, `<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-danger btn-sm" onclick="deletePrinciple(${id})">Delete</button>
-      <button class="btn btn-primary btn-sm" onclick="savePrinciple(${id})">Save</button>`);
-}
-
-function savePrinciple(id) {
-  const p = state.principles.find(x => x.id === id);
-  if (!p) return;
-  p.title = document.getElementById('epr-title').value;
-  p.body = document.getElementById('epr-body').value;
-  saveState();
-  renderPrinciples();
-  closeModal();
-}
-
-function deletePrinciple(id) {
-  if (!confirm('Delete this principle?')) return;
-  state.principles = state.principles.filter(x => x.id !== id);
-  saveState();
-  renderPrinciples();
-  closeModal();
-}
-
-function addPrinciple() {
-  openModal('Add Principle', `
-    <div class="form-group"><label>Title</label><input type="text" id="npr-title" placeholder="The principle" /></div>
-    <div class="form-group"><label>Body</label><textarea id="npr-body" placeholder="Explain it..."></textarea></div>
-  `, `<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary btn-sm" onclick="createPrinciple()">Add</button>`);
-}
-
-function createPrinciple() {
-  const title = document.getElementById('npr-title').value.trim();
-  if (!title) return;
-  state.principles.push({ id: uid(), title, body: document.getElementById('npr-body').value });
-  saveState();
-  renderPrinciples();
-  closeModal();
-}
-
-// ============================================================
-//  EXECUTION SYSTEM
-// ============================================================
-
-function renderExecution() {
-  const ex = state.execution;
-  document.getElementById('today-focus').value = ex.todayFocus || '';
-  document.getElementById('today-blocker').value = ex.todayBlocker || '';
-  document.getElementById('today-next').value = ex.todayNext || '';
-
-  renderWeeklyTargets();
-  renderSessionLog();
-  renderWeekDays();
-}
-
-function saveTodayFocus() {
-  state.execution.todayFocus = document.getElementById('today-focus').value;
-  state.execution.todayBlocker = document.getElementById('today-blocker').value;
-  state.execution.todayNext = document.getElementById('today-next').value;
-  saveState();
-}
-
-function renderWeeklyTargets() {
-  const list = document.getElementById('weekly-targets-list');
-  list.innerHTML = (state.execution.weeklyTargets || []).map((t, i) => `
-    <div class="exec-item">
-      <span class="item-text" onclick="toggleWeeklyTarget(${i})" style="cursor:pointer;${t.done?'text-decoration:line-through;color:var(--text-muted)':''}">${escapeHTML(t.text)}</span>
-      <button class="btn btn-danger btn-sm" onclick="deleteWeeklyTarget(${i})">✕</button>
-    </div>
-  `).join('');
-  if (!state.execution.weeklyTargets.length) {
-    list.innerHTML = '<div style="font-size:10px;color:var(--text-muted);padding:8px">No targets this week</div>';
-  }
-}
-
-function addWeeklyTarget() {
-  const val = document.getElementById('weekly-target-input').value.trim();
-  if (!val) return;
-  if (!state.execution.weeklyTargets) state.execution.weeklyTargets = [];
-  state.execution.weeklyTargets.push({ text: val, done: false });
-  document.getElementById('weekly-target-input').value = '';
-  saveState();
-  renderWeeklyTargets();
-}
-
-function toggleWeeklyTarget(i) {
-  state.execution.weeklyTargets[i].done = !state.execution.weeklyTargets[i].done;
-  saveState();
-  renderWeeklyTargets();
-}
-
-function deleteWeeklyTarget(i) {
-  state.execution.weeklyTargets.splice(i, 1);
-  saveState();
-  renderWeeklyTargets();
-}
-
-function renderSessionLog() {
-  const list = document.getElementById('session-log-list');
-  const sessions = (state.execution.sessions || []).slice().reverse().slice(0, 10);
-  list.innerHTML = sessions.map((s, i) => `
-    <div class="session-log-item">
-      <span class="log-topic">${escapeHTML(s.topic)}</span>
-      <span class="log-dur">${s.duration}h</span>
-      <span class="log-date">${formatDate(s.timestamp).split(',')[0]}</span>
-    </div>
-  `).join('');
-  if (!sessions.length) {
-    list.innerHTML = '<div style="font-size:10px;color:var(--text-muted);padding:8px">No sessions logged</div>';
-  }
-}
-
-function logSession() {
-  const topic = document.getElementById('session-topic-input').value.trim();
-  const dur = parseFloat(document.getElementById('session-dur-input').value) || 1;
-  if (!topic) return;
-  if (!state.execution.sessions) state.execution.sessions = [];
-  state.execution.sessions.push({ topic, duration: dur, timestamp: Date.now() });
-  document.getElementById('session-topic-input').value = '';
-  saveState();
-  renderSessionLog();
-}
-
-function renderWeekDays() {
-  const container = document.getElementById('weekly-days-container');
-  const days = state.execution.weekDays || [];
-  container.innerHTML = days.map((d, i) => `
-    <div class="weekly-day ${d.done?'done':''}" onclick="toggleDay(${i})">
-      <span class="day-name">${d.day}</span>
-      <span class="day-status ${d.done?'done':'pending'}">${d.done?'✓ Done':'Pending'}</span>
-    </div>
-  `).join('');
-
-  const done = days.filter(d => d.done).length;
-  document.getElementById('days-done-count').textContent = `${done} / 7`;
-}
-
-function toggleDay(i) {
-  state.execution.weekDays[i].done = !state.execution.weekDays[i].done;
-  saveState();
-  renderWeekDays();
-}
-
-// ============================================================
-//  VISION
-// ============================================================
-
-function renderVision() {
-  const container = document.getElementById('vision-container');
-  container.innerHTML = state.vision.map(v => `
-    <div class="card vision-card">
-      <div class="vision-year">${escapeHTML(v.year)}</div>
-      <div class="vision-title">${escapeHTML(v.title)}</div>
-      <div class="vision-desc">${escapeHTML(v.desc)}</div>
-      <div class="vision-tags">${(v.tags||[]).map(t => `<span class="badge badge-cyan" style="font-size:9px">${escapeHTML(t)}</span>`).join('')}</div>
-      <div style="display:flex;gap:6px;margin-top:14px">
-        <button class="btn btn-ghost btn-sm" onclick="editVision(${v.id})">✎ Edit</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteVision(${v.id})">✕</button>
-      </div>
-    </div>
-  `).join('');
-}
-
-function editVision(id) {
-  const v = state.vision.find(x => x.id === id);
-  if (!v) return;
-  openModal('Edit Vision', `
-    <div class="form-row">
-      <div class="form-group"><label>Timeframe</label><input type="text" id="ev-year" value="${escapeHTML(v.year)}" placeholder="e.g. 3–5 Years" /></div>
-      <div class="form-group"><label>Tags (comma separated)</label><input type="text" id="ev-tags" value="${escapeHTML((v.tags||[]).join(', '))}" /></div>
-    </div>
-    <div class="form-group"><label>Title</label><input type="text" id="ev-title" value="${escapeHTML(v.title)}" /></div>
-    <div class="form-group"><label>Description</label><textarea id="ev-desc">${escapeHTML(v.desc)}</textarea></div>
-  `, `<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary btn-sm" onclick="saveVision(${id})">Save</button>`);
-}
-
-function saveVision(id) {
-  const v = state.vision.find(x => x.id === id);
-  if (!v) return;
-  v.year = document.getElementById('ev-year').value;
-  v.title = document.getElementById('ev-title').value;
-  v.desc = document.getElementById('ev-desc').value;
-  v.tags = document.getElementById('ev-tags').value.split(',').map(t => t.trim()).filter(Boolean);
-  saveState();
-  renderVision();
-  closeModal();
-}
-
-function deleteVision(id) {
-  if (!confirm('Delete this vision?')) return;
-  state.vision = state.vision.filter(x => x.id !== id);
-  saveState();
-  renderVision();
-}
-
-function openVisionEditor() {
-  openModal('Add Vision', `
-    <div class="form-row">
-      <div class="form-group"><label>Timeframe</label><input type="text" id="nv-year" placeholder="e.g. 5–8 Years" /></div>
-      <div class="form-group"><label>Tags (comma separated)</label><input type="text" id="nv-tags" placeholder="Research, Rescue, ..." /></div>
-    </div>
-    <div class="form-group"><label>Title</label><input type="text" id="nv-title" placeholder="Vision title" /></div>
-    <div class="form-group"><label>Description</label><textarea id="nv-desc" placeholder="Describe the vision..."></textarea></div>
-  `, `<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary btn-sm" onclick="addVision()">Add Vision</button>`);
-}
-
-function addVision() {
-  const title = document.getElementById('nv-title').value.trim();
-  if (!title) return;
-  state.vision.push({
-    id: uid(),
-    year: document.getElementById('nv-year').value,
-    title,
-    desc: document.getElementById('nv-desc').value,
-    tags: document.getElementById('nv-tags').value.split(',').map(t => t.trim()).filter(Boolean)
-  });
-  saveState();
-  renderVision();
-  closeModal();
-}
-
-// ============================================================
-//  NOTES SYSTEM
-// ============================================================
-
-let currentNoteId = null;
-
-function renderNotesList() {
-  const container = document.getElementById('notes-list-container');
-  const count = document.getElementById('notes-count');
-  count.textContent = state.notes.length;
-
-  if (!state.notes.length) {
-    container.innerHTML = '<div style="padding:16px;font-size:11px;color:var(--text-muted)">No notes yet. Click + New Note.</div>';
-    return;
-  }
-
-  container.innerHTML = [...state.notes].reverse().map(n => `
-    <div class="note-list-item ${currentNoteId === n.id ? 'active' : ''}" onclick="openNote(${n.id})">
-      <div class="note-item-title">${escapeHTML(n.title) || 'Untitled'}</div>
-      <div class="note-item-preview">${escapeHTML((n.content || '').substring(0, 60))}...</div>
-      <div class="note-item-date">${formatDate(n.updatedAt || n.createdAt)}</div>
-    </div>
-  `).join('');
-  updateStats();
-}
-
-function openNote(id) {
-  const note = state.notes.find(x => x.id === id);
-  if (!note) return;
-  currentNoteId = id;
-  document.getElementById('note-title-input').value = note.title || '';
-  document.getElementById('note-content').value = note.content || '';
-  document.getElementById('note-meta').textContent = 'Last edited: ' + formatDate(note.updatedAt || note.createdAt);
-  renderNotesList();
-}
-
-function newNote() {
-  const note = {
-    id: uid(),
-    title: 'New Note',
-    content: '',
-    createdAt: Date.now(),
-    updatedAt: Date.now()
-  };
-  state.notes.push(note);
-  saveState();
-  renderNotesList();
-  openNote(note.id);
-  document.getElementById('note-title-input').focus();
-  document.getElementById('note-title-input').select();
-}
-
-function saveNote() {
-  if (!currentNoteId) { newNote(); return; }
-  const note = state.notes.find(x => x.id === currentNoteId);
-  if (!note) return;
-  note.title = document.getElementById('note-title-input').value || 'Untitled';
-  note.content = document.getElementById('note-content').value;
-  note.updatedAt = Date.now();
-  saveState();
-  renderNotesList();
-  document.getElementById('note-meta').textContent = 'Last edited: ' + formatDate(note.updatedAt);
-  toast('Note saved');
-}
-
-function deleteNote() {
-  if (!currentNoteId) return;
-  if (!confirm('Delete this note?')) return;
-  state.notes = state.notes.filter(x => x.id !== currentNoteId);
-  currentNoteId = null;
-  document.getElementById('note-title-input').value = '';
-  document.getElementById('note-content').value = '';
-  document.getElementById('note-meta').textContent = 'No note selected';
-  saveState();
-  renderNotesList();
-}
-
-// ============================================================
-//  STATS UPDATE
-// ============================================================
-
-function updateStats() {
-  document.getElementById('stat-projects').textContent = state.projects.length;
-  document.getElementById('stat-ideas').textContent = state.ideas.length;
-  document.getElementById('stat-notes').textContent = state.notes.length;
-  // Average phase progress
-  const avgPhase = state.phases.length
-    ? Math.round(state.phases.reduce((a, p) => a + p.progress, 0) / state.phases.length)
-    : 0;
-  document.getElementById('stat-phase').textContent = avgPhase + '%';
-}
-
-// ============================================================
-//  SIDEBAR + MOBILE
-// ============================================================
-
-function initSidebar() {
-  document.getElementById('menuToggle').addEventListener('click', () => {
-    document.getElementById('sidebar').classList.toggle('open');
-  });
-
-  document.querySelectorAll('.nav-item').forEach(item => {
-    item.addEventListener('click', () => {
-      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-      item.classList.add('active');
-      if (window.innerWidth < 900) {
-        document.getElementById('sidebar').classList.remove('open');
-      }
-    });
-  });
-
-  // Close modal on overlay click
-  document.getElementById('modal-overlay').addEventListener('click', (e) => {
-    if (e.target === document.getElementById('modal-overlay')) closeModal();
-  });
-
-  // Keyboard shortcuts
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeModal();
-    if (e.ctrlKey && e.key === 's') { e.preventDefault(); saveNote(); }
-  });
-
-  // Intersection observer for active nav
-  const sections = document.querySelectorAll('section[id]');
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const id = entry.target.id;
-        document.querySelectorAll('.nav-item').forEach(item => {
-          item.classList.toggle('active', item.getAttribute('href') === '#' + id);
-        });
-      }
-    });
-  }, { rootMargin: '-40% 0px -55% 0px' });
-
-  sections.forEach(section => observer.observe(section));
-}
-
-// ============================================================
-//  INIT
-// ============================================================
-
-function init() {
-  loadState();
-  initCanvas();
-  initClock();
-  initSidebar();
-
-  renderHero();
-  renderMissionCards();
-  renderSkillTree();
-  renderRoadmap();
-  renderProjects();
-  renderKnowledge();
-  renderResearch();
-  renderIdeas();
-  renderPrinciples();
-  renderExecution();
-  renderVision();
-  renderNotesList();
-  updateStats();
-
-  // First open animation
-  document.querySelectorAll('.section').forEach((s, i) => {
-    s.style.animation = `fadeIn 0.5s ease ${i * 0.05}s both`;
-  });
+function positionGhost(y) {
+  dragGhostEl.style.top = (y - 20) + 'px';
+  dragGhostEl.style.left = '50%';
+  dragGhostEl.style.transform = 'translateX(-50%)';
 }
 
-document.addEventListener('DOMContentLoaded', init);
+// init
+load();
+setDate();
+render();
 </script>
 </body>
 </html>
